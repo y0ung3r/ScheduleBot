@@ -21,4 +21,13 @@
     <ProjectReference Include="..\ScheduleBot.Parser\ScheduleBot.Parser.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Bot.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Database.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
