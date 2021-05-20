@@ -22,7 +22,6 @@ namespace ScheduleBot.Systems
         public override async Task OnCommandReceivedAsync(Message message)
         {
             var chatId = message.Chat.Id;
-
             var userSchedule = await Bot.UnitOfWork.UserSchedules.FindUserSchedule(chatId);
 
             if (userSchedule != null)
@@ -33,9 +32,9 @@ namespace ScheduleBot.Systems
                 var lessons = await _scheduleParser.ParseLessonsAsync(userGroup, dateTime);
 
                 var lessonsMarkup = new List<string>()
-                    {
-                        $"<b>Расписание на {dateTime.ToShortDateString()}:</b>"
-                    };
+                {
+                    $"<b>Расписание на {dateTime.ToShortDateString()}:</b>"
+                };
 
                 if (lessons.Count > 0)
                 {
@@ -43,9 +42,31 @@ namespace ScheduleBot.Systems
                     (
                         lessons.Select(lesson =>
                         {
-                            var header = $"<b>{lesson.Number}</b> {lesson.Title} ({lesson.Teacher})\n";
-                            var content = $"<i>{lesson.Type} {lesson.ClassroomNumber}</i> в {lesson.TimeRange}";
-                            return header + content;
+                            var header = $"<b>{lesson.Number} {lesson.Title}</b>\n";
+                            var type = string.Empty;
+
+                            if (!string.IsNullOrWhiteSpace(lesson.Type))
+                            {
+                                type = $"<i>{lesson.Type}</i>";
+                            }
+
+                            var classroomNumber = string.Empty;
+
+                            if (!string.IsNullOrWhiteSpace(lesson.ClassroomNumber))
+                            {
+                                classroomNumber = $" <i>{lesson.ClassroomNumber}</i> в ";
+                            }
+
+                            var additionalInfo = string.Concat(type, classroomNumber, $"{lesson.TimeRange}\n");
+
+                            var teachers = string.Empty;
+
+                            if (lesson.Teachers.Count > 0)
+                            {
+                                teachers = $"{string.Join(separator: ", ", lesson.Teachers)}";
+                            }
+
+                            return string.Concat(header, additionalInfo, teachers);
                         })
                     );
                 }
@@ -66,7 +87,7 @@ namespace ScheduleBot.Systems
                 await Bot.Client.SendTextMessageAsync
                 (
                     chatId,
-                    "Вы не настроили бота, чтобы использовать этот функционал.\nИспользуйте /start, чтобы начать",
+                    "Вы не настроили бота, чтобы использовать этот функционал.\nИспользуйте /setup, чтобы начать работу",
                     ParseMode.Html
                 );
             }

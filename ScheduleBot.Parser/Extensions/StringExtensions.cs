@@ -16,5 +16,11 @@ namespace ScheduleBot.Parser.Extensions
 
             return textBetweenBrackets.Split(',');
         }
+
+        public static string AsInSentences(this string text)
+        {
+            var trimmedText = text.Trim().ToLower();
+            return char.ToUpper(trimmedText[0]) + trimmedText.Substring(startIndex: 1, trimmedText.Length - 1);
+        }
     }
 }

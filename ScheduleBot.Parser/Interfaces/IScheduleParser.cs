@@ -9,6 +9,8 @@ namespace ScheduleBot.Parser.Interfaces
     {
         Task<ICollection<Faculty>> ParseFacultiesAsync();
 
+        Task<Faculty> ParseFacultyAsync(int facultyId);
+
         Task<ICollection<Group>> ParseGroupsAsync(int facultyId);
 
         Task<Group> ParseGroupAsync(int facultyId, int groupId, int groupTypeId);

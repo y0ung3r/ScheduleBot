@@ -24,15 +24,32 @@ namespace ScheduleBot
             _systems = systems;
 
             Client = new TelegramBotClient(_token);
+            Client.OnUpdate += OnUpdateReceived;
             Client.OnMessage += OnMessageReceived;
 
             UnitOfWork = unitOfWork;
+        }
+
+        private void OnUpdateReceived(object sender, UpdateEventArgs eventArgs)
+        {
+            OnUpdateReceivedAsync(eventArgs.Update).GetAwaiter()
+                                                   .GetResult();
         }
 
         private void OnMessageReceived(object sender, MessageEventArgs eventArgs)
         {
             OnMessageReceivedAsync(eventArgs.Message).GetAwaiter()
                                                      .GetResult();
+        }
+
+        private async Task OnUpdateReceivedAsync(Update update)
+        {
+            Console.WriteLine($"Bot received an update with the identifier: {update.Id}");
+
+            foreach (var system in _systems)
+            {
+                await system.OnUpdateReceivedAsync(update);
+            }
         }
 
         private async Task OnMessageReceivedAsync(Message message)

@@ -45,6 +45,12 @@ namespace ScheduleBot.Parser
                        .ToList();
         }
 
+        public async Task<Faculty> ParseFacultyAsync(int facultyId)
+        {
+            var faculties = await ParseFacultiesAsync();
+            return faculties.FirstOrDefault(faculty => faculty.Id.Equals(facultyId)); 
+        }
+
         public async Task<ICollection<Group>> ParseGroupsAsync(int facultyId)
         {
             var page = await _httpClient.CreateHtmlDocumentByGetAsync
@@ -162,10 +168,14 @@ namespace ScheduleBot.Parser
                                                      .FirstOrDefault()
                                                      .InnerText;
 
-                           var teacher = node.SelectNodes(".//*[contains(@class, 'prep')]")
-                                             .Nodes()
-                                             .FirstOrDefault()
-                                             .InnerText;
+                           var teachers = node.SelectNodes(".//*[contains(@class, 'prep')]")
+                                              .Nodes()
+                                              .SelectMany(node => node.ChildNodes)
+                                              .Select
+                                              (
+                                                  node => node.InnerText.Replace("(", " (")
+                                              )
+                                              .ToList();
 
                            return new Lesson
                            {
@@ -174,7 +184,7 @@ namespace ScheduleBot.Parser
                                TimeRange = timeRange,
                                Type = type,
                                ClassroomNumber = classroomNumber,
-                               Teacher = teacher
+                               Teachers = teachers
                            };
                        })
                        .ToList() ?? new List<Lesson>();

@@ -23,7 +23,7 @@ namespace ScheduleBot.Extensions
                          .ToList();
         }
 
-        public static IReplyMarkup ToReplyKeyboard<TSource, TProperty>(this ICollection<TSource> source, Expression<Func<TSource, TProperty>> property, 
+        public static IReplyMarkup ToReplyKeyboard<TSource, TProperty>(this ICollection<TSource> source, Expression<Func<TSource, TProperty>> property, int chunkSize, 
             bool resizeKeyboard = false, bool oneTimeKeyboard = false)
         {
             var propertyInfo = property.GetPropertyInfo();
@@ -37,10 +37,33 @@ namespace ScheduleBot.Extensions
 
             return new ReplyKeyboardMarkup()
             {
-                Keyboard = keyboardButtons.ChunkBy(chunkSize: 4),
+                Keyboard = keyboardButtons.ChunkBy(chunkSize),
                 ResizeKeyboard = true,
                 OneTimeKeyboard = true
             };
+        }
+
+        public static IReplyMarkup ToInlineKeyboard<TSource, TProperty>(this ICollection<TSource> source, Expression<Func<TSource, TProperty>> property, int chunkSize)
+        {
+            var propertyInfo = property.GetPropertyInfo();
+
+            var keyboardButtons = source.Select(element =>
+                                        {
+                                            var text = propertyInfo.GetValue(element)
+                                                                   .ToString();
+
+                                            return new InlineKeyboardButton()
+                                            {
+                                                Text = text,
+                                                CallbackData = text
+                                            };
+                                        })
+                                        .ToList();
+
+            return new InlineKeyboardMarkup
+            (
+                keyboardButtons.ChunkBy(chunkSize)
+            );
         }
     }
 }

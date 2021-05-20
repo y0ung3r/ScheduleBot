@@ -21,7 +21,16 @@ namespace ScheduleBot.Extensions
 
         public static bool MessageIsCommand(this ISystem system, string message)
         {
-            return system.IsCommand() && system.GetCommandAttribute().Pattern.Equals(message);
+            var pattern = system.GetCommandAttribute()
+                                .Pattern
+                                .Split(",")
+                                .FirstOrDefault
+                                (
+                                    pattern => pattern.Trim()
+                                                      .Equals(message)
+                                );
+
+            return system.IsCommand() && pattern != null;
         }
     }
 }

@@ -29,6 +29,11 @@ namespace ScheduleBot.Systems
             await Task.CompletedTask;
         }
 
+        public virtual async Task OnUpdateReceivedAsync(Update update)
+        {
+            await Task.CompletedTask;
+        }
+
         public virtual async Task OnCommandReceivedAsync(Message message)
         {
             await Task.CompletedTask;

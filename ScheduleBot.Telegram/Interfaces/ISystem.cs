@@ -9,6 +9,8 @@ namespace ScheduleBot.Interfaces
 
         Task OnStartupAsync();
 
+        Task OnUpdateReceivedAsync(Update update);
+
         Task OnCommandReceivedAsync(Message message);
 
         Task OnMessageReceivedAsync(Message message);

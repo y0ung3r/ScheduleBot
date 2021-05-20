@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using ScheduleBot.Parser.Extensions;
+using System.Linq;
+using System.Text;
 
 namespace ScheduleBot.Parser.Models
 {
@@ -7,6 +9,21 @@ namespace ScheduleBot.Parser.Models
         public int Id { get; set; }
 
         public string Title { get; set; }
+
+        public string TitleWithoutFacultyTag
+        {
+            get
+            {
+                var stringBuilder = new StringBuilder(Title);
+
+                var titleWithoutFacultyTag = stringBuilder.Replace("Факультет", string.Empty)
+                                                          .Replace("факультет", string.Empty)
+                                                          .ToString()
+                                                          .Trim();
+
+                return titleWithoutFacultyTag.AsInSentences();
+            }
+        }
 
         public string Abbreviation
         {

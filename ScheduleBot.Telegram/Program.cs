@@ -30,7 +30,9 @@ namespace ScheduleBot
                         services.TryAddSingleton<IScheduleParser, ScheduleParser>();
                     })
                     .SetToken(ConfigurationManager.AppSettings["token"])
-                    .UseSystem<SignUpSystem>()
+                    .UseSystem<HelpSystem>()
+                    .UseSystem<SettingsSystem>()
+                    .UseSystem<SetupSystem>()
                     .UseSystem<FetchScheduleSystem>()
                     .Build()
                     .Run();

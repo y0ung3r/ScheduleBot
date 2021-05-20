@@ -1,4 +1,6 @@
-﻿namespace ScheduleBot.Parser.Models
+﻿using System.Collections.Generic;
+
+namespace ScheduleBot.Parser.Models
 {
     public class Lesson 
     {
@@ -12,6 +14,6 @@
 
         public string ClassroomNumber { get; set; }
 
-        public string Teacher { get; set; }
+        public ICollection<string> Teachers { get; set; }
     }
 }

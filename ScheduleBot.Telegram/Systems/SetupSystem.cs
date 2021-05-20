@@ -10,16 +10,16 @@ using Telegram.Bot.Types;
 
 namespace ScheduleBot.Systems
 {
-    [Command(pattern: "/start")]
-    public class SignUpSystem : SystemBase
+    [Command(pattern: "/setup")]
+    public class SetupSystem : SystemBase
     {
-        public class SignUpStage
+        public class SetupStage
         {
             public long ChatId { get; }
             public Faculty ChoosedFaculty { get; set; }
             public Group ChoosedGroup { get; set; }
 
-            public SignUpStage(long chatId)
+            public SetupStage(long chatId)
             {
                 ChatId = chatId;
             }
@@ -28,18 +28,44 @@ namespace ScheduleBot.Systems
         private readonly IScheduleParser _scheduleParser;
         private ICollection<Faculty> _faculties;
         private ICollection<Group> _groups;
-        private readonly ICollection<SignUpStage> _stages;
+        private readonly ICollection<SetupStage> _stages;
         
-        public SignUpSystem(IScheduleParser scheduleParser)
+        public SetupSystem(IScheduleParser scheduleParser)
         {
             _scheduleParser = scheduleParser;
 
-            _stages = new List<SignUpStage>();
+            _stages = new List<SetupStage>();
         }
 
         public override async Task OnStartupAsync()
         {
             _faculties = await _scheduleParser.ParseFacultiesAsync();
+        }
+
+        public override async Task OnUpdateReceivedAsync(Update update)
+        {
+            if (update.CallbackQuery != null)
+            {
+                var chatId = update.CallbackQuery.Message.Chat.Id;
+                var stage = _stages.FirstOrDefault(stage => stage.ChatId.Equals(chatId));
+
+                if (stage != null)
+                {
+                    var messageText = update.CallbackQuery.Data;
+
+                    if (stage.ChoosedFaculty is null)
+                    {
+                        await AskUserFacultyAsync(stage, messageText);
+                    }
+
+                    if (_groups != null && stage.ChoosedGroup is null)
+                    {
+                        await AskUserGroupAsync(stage, messageText);
+                    }
+                }
+
+                await Bot.Client.AnswerCallbackQueryAsync(update.CallbackQuery.Id);
+            }
         }
 
         public override async Task OnCommandReceivedAsync(Message message)
@@ -54,46 +80,24 @@ namespace ScheduleBot.Systems
 
             _stages.Add
             (
-                new SignUpStage(chatId)
+                new SetupStage(chatId)
             );
 
-            var replyKeyboard = _faculties.ToReplyKeyboard
+            var replyKeyboard = _faculties.ToInlineKeyboard
             (
                 faculty => faculty.Abbreviation,
-                oneTimeKeyboard: true
+                chunkSize: 2
             );
 
             await Bot.Client.SendTextMessageAsync
             (
                 chatId,
-                "Перед началом работы необходимо произвести настройку бота.\n" +
                 "Выберите факультет, к которому Вас нужно прикрепить:",
                 replyMarkup: replyKeyboard
             );
         }
 
-        public override async Task OnMessageReceivedAsync(Message message)
-        {
-            var chatId = message.Chat.Id;
-            var stage = _stages.FirstOrDefault(stage => stage.ChatId.Equals(chatId));
-
-            if (stage != null)
-            {
-                var messageText = message.Text;
-
-                if (stage.ChoosedFaculty is null)
-                {
-                    await AskUserFacultyAsync(stage, messageText);
-                }
-
-                if (stage.ChoosedGroup is null)
-                {
-                    await AskUserGroupAsync(stage, messageText);
-                }
-            }
-        }
-
-        private async Task AskUserFacultyAsync(SignUpStage stage, string messageText)
+        private async Task AskUserFacultyAsync(SetupStage stage, string messageText)
         {
             stage.ChoosedFaculty = _faculties.FirstOrDefault(faculty => faculty.Abbreviation.Equals(messageText));
 
@@ -101,10 +105,10 @@ namespace ScheduleBot.Systems
             {
                 _groups = await _scheduleParser.ParseGroupsAsync(stage.ChoosedFaculty.Id);
 
-                var replyKeyboard = _groups.ToReplyKeyboard
+                var replyKeyboard = _groups.ToInlineKeyboard
                 (
                     group => group.Title,
-                    oneTimeKeyboard: true
+                    chunkSize: 2
                 );
 
                 await Bot.Client.SendTextMessageAsync
@@ -116,7 +120,7 @@ namespace ScheduleBot.Systems
             }
         }
 
-        private async Task AskUserGroupAsync(SignUpStage stage, string messageText)
+        private async Task AskUserGroupAsync(SetupStage stage, string messageText)
         {
             stage.ChoosedGroup = _groups.FirstOrDefault(group => group.Title.Equals(messageText));
 
