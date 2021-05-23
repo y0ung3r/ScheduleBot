@@ -1,4 +1,5 @@
 ﻿using HtmlAgilityPack;
+using ScheduleBot.Parser.Interfaces;
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;

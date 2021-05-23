@@ -1,9 +1,11 @@
 ﻿using ScheduleBot.Attributes;
+using ScheduleBot.Data.Interfaces;
 using ScheduleBot.Parser.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
@@ -12,23 +14,25 @@ namespace ScheduleBot.Systems
     [Command(pattern: "/schedule")]
     public class FetchScheduleSystem : SystemBase
     {
+        private readonly IBotUnitOfWork _unitOfWork;
         private readonly IScheduleParser _scheduleParser;
 
-        public FetchScheduleSystem(IScheduleParser scheduleParser)
+        public FetchScheduleSystem(IBotUnitOfWork unitOfWork, IScheduleParser scheduleParser)
         {
+            _unitOfWork = unitOfWork;
             _scheduleParser = scheduleParser;
         }
 
-        public override async Task OnCommandReceivedAsync(Message message)
+        public override async Task OnCommandReceivedAsync(ITelegramBotClient client, Message command)
         {
-            var chatId = message.Chat.Id;
-            var userSchedule = await Bot.UnitOfWork.UserSchedules.FindUserSchedule(chatId);
+            var chatId = command.Chat.Id;
+            var userSchedule = await _unitOfWork.UserSchedules.FindUserSchedule(chatId);
 
             if (userSchedule != null)
             {
                 var userGroup = await _scheduleParser.ParseGroupAsync(userSchedule.FacultyId, userSchedule.GroupId, userSchedule.GroupTypeId);
 
-                var dateTime = DateTime.Now;
+                var dateTime = DateTime.Today;
                 var lessons = await _scheduleParser.ParseLessonsAsync(userGroup, dateTime);
 
                 var lessonsMarkup = new List<string>()
@@ -75,7 +79,7 @@ namespace ScheduleBot.Systems
                     lessonsMarkup.Add("Пары отсутствуют");
                 }
 
-                await Bot.Client.SendTextMessageAsync
+                await client.SendTextMessageAsync
                 (
                     chatId,
                     string.Join("\n\n", lessonsMarkup),
@@ -84,7 +88,7 @@ namespace ScheduleBot.Systems
             }
             else
             {
-                await Bot.Client.SendTextMessageAsync
+                await client.SendTextMessageAsync
                 (
                     chatId,
                     "Вы не настроили бота, чтобы использовать этот функционал.\nИспользуйте /setup, чтобы начать работу",

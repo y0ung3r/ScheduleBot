@@ -1,18 +1,19 @@
 ﻿using ScheduleBot.Attributes;
 using System.Threading.Tasks;
+using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
 namespace ScheduleBot.Systems
 {
     [Command(pattern: "/start, /help")]
-    public class HelpSystem : SystemBase
+    public class MainSystem : SystemBase
     {
-        public override async Task OnCommandReceivedAsync(Message message)
+        public override async Task OnCommandReceivedAsync(ITelegramBotClient client, Message command)
         {
-            await Bot.Client.SendTextMessageAsync
+            await client.SendTextMessageAsync
             (
-                message.Chat.Id,
+                command.Chat.Id,
                 "Вы можете использовать следующие команды:" +
                 "\n\n" +
                 "<b>Настройки:</b>\n" +
@@ -20,10 +21,7 @@ namespace ScheduleBot.Systems
                 "/setup - изменить настройки, необходимые для получения расписания" +
                 "\n\n" +
                 "<b>Возможности:</b>\n" +
-                "/schedule - получить расписание на сегодня" +
-                "\n\n" +
-                "<b>Расписание СФ БашГУ</b> - проект с открытым исходным кодом\n" +
-                "<b>GitHub:</b> https://github.com/y0ung3r/ScheduleBot",
+                "/schedule - получить расписание на сегодня",
                 ParseMode.Html,
                 disableWebPagePreview: true
             );

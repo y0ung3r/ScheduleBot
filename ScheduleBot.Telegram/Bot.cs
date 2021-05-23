@@ -1,12 +1,14 @@
-﻿using ScheduleBot.Data.Interfaces;
-using ScheduleBot.Extensions;
+﻿using ScheduleBot.Extensions;
 using ScheduleBot.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Telegram.Bot;
-using Telegram.Bot.Args;
+using Telegram.Bot.Exceptions;
+using Telegram.Bot.Extensions.Polling;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
 namespace ScheduleBot
 {
@@ -15,84 +17,81 @@ namespace ScheduleBot
         private readonly string _token;
         private readonly IReadOnlyCollection<ISystem> _systems;
 
-        public TelegramBotClient Client { get; }
-        public IBotUnitOfWork UnitOfWork { get; }
-
-        public Bot(string token, IReadOnlyCollection<ISystem> systems, IBotUnitOfWork unitOfWork)
+        public Bot(string token, IReadOnlyCollection<ISystem> systems)
         {
             _token = token;
             _systems = systems;
-
-            Client = new TelegramBotClient(_token);
-            Client.OnUpdate += OnUpdateReceived;
-            Client.OnMessage += OnMessageReceived;
-
-            UnitOfWork = unitOfWork;
         }
 
-        private void OnUpdateReceived(object sender, UpdateEventArgs eventArgs)
+        private async Task OnUpdateReceivedAsync(ITelegramBotClient client, Update update, CancellationToken cancellationToken)
         {
-            OnUpdateReceivedAsync(eventArgs.Update).GetAwaiter()
-                                                   .GetResult();
-        }
-
-        private void OnMessageReceived(object sender, MessageEventArgs eventArgs)
-        {
-            OnMessageReceivedAsync(eventArgs.Message).GetAwaiter()
-                                                     .GetResult();
-        }
-
-        private async Task OnUpdateReceivedAsync(Update update)
-        {
-            Console.WriteLine($"Bot received an update with the identifier: {update.Id}");
-
             foreach (var system in _systems)
             {
-                await system.OnUpdateReceivedAsync(update);
+                switch (update.Type)
+                {
+                    case UpdateType.Message:
+                        var message = update.Message;
+
+                        if (system.MessageIsCommand(message.Text))
+                        {
+                            await system.OnCommandReceivedAsync(client, message);
+                        }
+                        else
+                        {
+                            await system.OnMessageReceivedAsync(client, message);
+                        }
+                        break;
+
+                    case UpdateType.EditedMessage:
+                        await system.OnEditedMessageReceivedAsync(client, update.EditedMessage);
+                        break;
+
+                    case UpdateType.InlineQuery:
+                        await system.OnInlineQueryReceivedAsync(client, update.InlineQuery);
+                        break;
+
+                    case UpdateType.CallbackQuery:
+                        await system.OnCallbackQueryReceivedAsync(client, update.CallbackQuery);
+                        break;
+
+                    default:
+                        await system.OnUnknownUpdateReceivedAsync(client, update);
+                        break;
+                }
             }
         }
 
-        private async Task OnMessageReceivedAsync(Message message)
+        private Task OnErrorReceivedAsync(ITelegramBotClient client, Exception exception, CancellationToken cancellationToken)
         {
-            Console.WriteLine($"Bot received a message on chat with the identifier: {message.Chat.Id}");
-
-            foreach (var system in _systems)
+            var errorMessage = exception switch
             {
-                var messageText = message.Text;
-                var systemType = system.GetType();
+                ApiRequestException apiRequestException => $"Telegram API error [{apiRequestException.ErrorCode}]: {apiRequestException.Message}",
+                _ => exception.ToString()
+            };
 
-                if (system.MessageIsCommand(messageText))
-                {
-                    await system.OnCommandReceivedAsync(message);
+            Console.WriteLine(errorMessage);
 
-                    Console.WriteLine($"Command \"{messageText}\" executed on the system: \"{systemType}\"");
-                }
-                else
-                {
-                    await system.OnMessageReceivedAsync(message);
-
-                    Console.WriteLine($"A message transfer to the system: \"{systemType}\"");
-                }
-            }
+            return Task.CompletedTask;
         }
 
         public void Run()
         {
-            foreach (var system in _systems)
-            {
-                system.Initialize(bot: this);
+            var client = new TelegramBotClient(_token);
+            var updateHandler = new DefaultUpdateHandler(OnUpdateReceivedAsync, OnErrorReceivedAsync);
+            var cancellationTokenSource = new CancellationTokenSource();
 
-                system.OnStartupAsync()
-                      .GetAwaiter()
-                      .GetResult();
-            }
-
-            Client.StartReceiving();
+            client.StartReceiving
+            (
+                updateHandler,
+                cancellationTokenSource.Token
+            );
 
             Console.WriteLine("Bot is running");
             Console.ReadKey();
 
-            Client.StopReceiving();
+            client.StopReceiving();
+
+            cancellationTokenSource.Cancel();
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using ScheduleBot.Attributes;
+using ScheduleBot.Data.Interfaces;
 using ScheduleBot.Data.Models;
 using ScheduleBot.Extensions;
 using ScheduleBot.Parser.Interfaces;
@@ -6,6 +7,7 @@ using ScheduleBot.Parser.Models;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Telegram.Bot;
 using Telegram.Bot.Types;
 
 namespace ScheduleBot.Systems
@@ -25,52 +27,45 @@ namespace ScheduleBot.Systems
             }
         }
 
+        private readonly IBotUnitOfWork _unitOfWork;
         private readonly IScheduleParser _scheduleParser;
+        private readonly ICollection<SetupStage> _stages;
         private ICollection<Faculty> _faculties;
         private ICollection<Group> _groups;
-        private readonly ICollection<SetupStage> _stages;
-        
-        public SetupSystem(IScheduleParser scheduleParser)
-        {
-            _scheduleParser = scheduleParser;
 
+        public SetupSystem(IBotUnitOfWork unitOfWork, IScheduleParser scheduleParser)
+        {
+            _unitOfWork = unitOfWork;
+            _scheduleParser = scheduleParser;
             _stages = new List<SetupStage>();
         }
 
-        public override async Task OnStartupAsync()
+        public override async Task OnCallbackQueryReceivedAsync(ITelegramBotClient client, CallbackQuery callbackQuery)
         {
-            _faculties = await _scheduleParser.ParseFacultiesAsync();
-        }
+            var chatId = callbackQuery.Message.Chat.Id;
+            var stage = _stages.FirstOrDefault(stage => stage.ChatId.Equals(chatId));
 
-        public override async Task OnUpdateReceivedAsync(Update update)
-        {
-            if (update.CallbackQuery != null)
+            if (stage != null)
             {
-                var chatId = update.CallbackQuery.Message.Chat.Id;
-                var stage = _stages.FirstOrDefault(stage => stage.ChatId.Equals(chatId));
+                var callbackData = callbackQuery.Data;
 
-                if (stage != null)
+                if (stage.ChoosedFaculty is null)
                 {
-                    var messageText = update.CallbackQuery.Data;
-
-                    if (stage.ChoosedFaculty is null)
-                    {
-                        await AskUserFacultyAsync(stage, messageText);
-                    }
-
-                    if (_groups != null && stage.ChoosedGroup is null)
-                    {
-                        await AskUserGroupAsync(stage, messageText);
-                    }
+                    await AskUserFacultyAsync(client, stage, callbackData);
                 }
 
-                await Bot.Client.AnswerCallbackQueryAsync(update.CallbackQuery.Id);
+                if (_groups != null && stage.ChoosedGroup is null)
+                {
+                    await AskUserGroupAsync(client, stage, callbackData);
+                }
             }
+
+            await client.AnswerCallbackQueryAsync(callbackQuery.Id);
         }
 
-        public override async Task OnCommandReceivedAsync(Message message)
+        public override async Task OnCommandReceivedAsync(ITelegramBotClient client, Message command)
         {
-            var chatId = message.Chat.Id;
+            var chatId = command.Chat.Id;
             var stage = _stages.FirstOrDefault(stage => stage.ChatId.Equals(chatId));
 
             if (stage != null)
@@ -83,13 +78,15 @@ namespace ScheduleBot.Systems
                 new SetupStage(chatId)
             );
 
+            _faculties = await _scheduleParser.ParseFacultiesAsync();
+
             var replyKeyboard = _faculties.ToInlineKeyboard
             (
                 faculty => faculty.Abbreviation,
-                chunkSize: 2
+                columnsCount: 2
             );
 
-            await Bot.Client.SendTextMessageAsync
+            await client.SendTextMessageAsync
             (
                 chatId,
                 "Выберите факультет, к которому Вас нужно прикрепить:",
@@ -97,9 +94,9 @@ namespace ScheduleBot.Systems
             );
         }
 
-        private async Task AskUserFacultyAsync(SetupStage stage, string messageText)
+        private async Task AskUserFacultyAsync(ITelegramBotClient client, SetupStage stage, string callbackData)
         {
-            stage.ChoosedFaculty = _faculties.FirstOrDefault(faculty => faculty.Abbreviation.Equals(messageText));
+            stage.ChoosedFaculty = _faculties.FirstOrDefault(faculty => faculty.Abbreviation.Equals(callbackData));
 
             if (stage.ChoosedFaculty != null)
             {
@@ -108,10 +105,10 @@ namespace ScheduleBot.Systems
                 var replyKeyboard = _groups.ToInlineKeyboard
                 (
                     group => group.Title,
-                    chunkSize: 2
+                    columnsCount: 2
                 );
 
-                await Bot.Client.SendTextMessageAsync
+                await client.SendTextMessageAsync
                 (
                     stage.ChatId,
                     "Теперь выберите группу:",
@@ -120,13 +117,13 @@ namespace ScheduleBot.Systems
             }
         }
 
-        private async Task AskUserGroupAsync(SetupStage stage, string messageText)
+        private async Task AskUserGroupAsync(ITelegramBotClient client, SetupStage stage, string callbackData)
         {
-            stage.ChoosedGroup = _groups.FirstOrDefault(group => group.Title.Equals(messageText));
+            stage.ChoosedGroup = _groups.FirstOrDefault(group => group.Title.Equals(callbackData));
 
             if (stage.ChoosedGroup != null)
             {
-                var userSchedule = await Bot.UnitOfWork.UserSchedules.FindUserSchedule(stage.ChatId);
+                var userSchedule = await _unitOfWork.UserSchedules.FindUserSchedule(stage.ChatId);
 
                 if (userSchedule is null)
                 {
@@ -138,7 +135,7 @@ namespace ScheduleBot.Systems
                         GroupTypeId = stage.ChoosedGroup.TypeId
                     };
 
-                    await Bot.UnitOfWork.UserSchedules.AddAsync(userSchedule);
+                    await _unitOfWork.UserSchedules.AddAsync(userSchedule);
                 }
                 else
                 {
@@ -147,12 +144,13 @@ namespace ScheduleBot.Systems
                     userSchedule.GroupTypeId = stage.ChoosedGroup.TypeId;
                 }
 
-                await Bot.UnitOfWork.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync();
 
-                await Bot.Client.SendTextMessageAsync
+                await client.SendTextMessageAsync
                 (
                     stage.ChatId,
-                    "Отлично, настройка завершена!\nТеперь Вы будете получать расписание с учетом сохраненных параметров"
+                    "Отлично, настройка завершена!\n" +
+                    "Теперь Вы будете получать расписание с учетом сохраненных параметров"
                 );
 
                 _stages.Remove(stage);

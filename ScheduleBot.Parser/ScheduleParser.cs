@@ -29,7 +29,10 @@ namespace ScheduleBot.Parser
                        .SelectNodes(".//*[contains(@class, 'menu')]/*[contains(@class, 'red')]")
                        .Select(node =>
                        {
-                           var onClickParameters = node.Attributes["onclick"].Value.GetTextBetweenBrackets();
+                           var onClickParameters = node.Attributes["onclick"]
+                                                       .Value
+                                                       .GetTextBetweenBrackets()
+                                                       .Split(",");
 
                            var id = Convert.ToInt32
                            (
@@ -48,6 +51,7 @@ namespace ScheduleBot.Parser
         public async Task<Faculty> ParseFacultyAsync(int facultyId)
         {
             var faculties = await ParseFacultiesAsync();
+
             return faculties.FirstOrDefault(faculty => faculty.Id.Equals(facultyId)); 
         }
 
@@ -62,7 +66,10 @@ namespace ScheduleBot.Parser
                        .SelectNodes(".//ul/li/a")
                        .Select(node =>
                        {
-                           var onClickParameters = node.Attributes["onclick"].Value.GetTextBetweenBrackets();
+                           var onClickParameters = node.Attributes["onclick"]
+                                                       .Value
+                                                       .GetTextBetweenBrackets()
+                                                       .Split(",");
 
                            var type = Convert.ToInt32
                            (
@@ -74,16 +81,10 @@ namespace ScheduleBot.Parser
                                onClickParameters.ElementAt(index: 2)
                            );
 
-                           var week = Convert.ToInt32
-                           (
-                               onClickParameters.ElementAt(index: 3)
-                           );
-
                            return new Group()
                            {
                                Id = id,
                                TypeId = type,
-                               Week = week,
                                Title = node.InnerText
                            };
                        })
@@ -93,12 +94,15 @@ namespace ScheduleBot.Parser
         public async Task<Group> ParseGroupAsync(int facultyId, int groupId, int groupTypeId)
         {
             var groups = await ParseGroupsAsync(facultyId);
+
             return groups.FirstOrDefault(group => group.Id.Equals(groupId) && group.TypeId.Equals(groupTypeId));
         }
 
         public async Task<ICollection<Lesson>> ParseLessonsAsync(Group group, DateTime dateTime)
         {
-            var responseContent = new FormUrlEncodedContent
+            var weekNumber = dateTime.GetWeekOffsetBy(DateTime.Today, DayOfWeek.Monday);
+
+            var content = new FormUrlEncodedContent
             (
                 new Dictionary<string, string>()
                 {
@@ -112,7 +116,7 @@ namespace ScheduleBot.Parser
                     },
                     {
                         "week",
-                        $"{group.Week}"
+                        $"{weekNumber}"
                     }
                 }
             );
@@ -120,7 +124,7 @@ namespace ScheduleBot.Parser
             var page = await _httpClient.CreateHtmlDocumentByPostAsync
             (
                 ParserRoutes.GetLessonsUri(),
-                responseContent
+                content
             );
 
             var day = page.DocumentNode

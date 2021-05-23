@@ -14,15 +14,16 @@ namespace ScheduleBot.Extensions
         {
             services.AddScoped<IBot, Bot>(serviceProvider =>
             {
+                var readOnlySystems = new ReadOnlyCollection<ISystem>
+                (
+                    systemTypes.Select(systemType => serviceProvider.GetRequiredService(systemType) as ISystem)
+                               .ToList()
+                );
+                
                 return new Bot
                 (
                     token,
-                    new ReadOnlyCollection<ISystem>
-                    (
-                        systemTypes.Select(systemType => serviceProvider.GetRequiredService(systemType) as ISystem)
-                                   .ToList()
-                    ),
-                    serviceProvider.GetRequiredService<IBotUnitOfWork>()
+                    readOnlySystems
                 );
             });
 

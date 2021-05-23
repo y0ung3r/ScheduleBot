@@ -5,7 +5,7 @@ namespace ScheduleBot.Parser.Extensions
 {
     public static class StringExtensions
     {
-        public static ICollection<string> GetTextBetweenBrackets(this string text)
+        public static string GetTextBetweenBrackets(this string text)
         {
             var textBetweenBrackets = string.Concat
             (
@@ -14,7 +14,7 @@ namespace ScheduleBot.Parser.Extensions
                     .TakeWhile(symbol => !symbol.Equals(')'))
             );
 
-            return textBetweenBrackets.Split(',');
+            return textBetweenBrackets;
         }
 
         public static string AsInSentences(this string text)

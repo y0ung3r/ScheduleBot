@@ -1,18 +1,21 @@
 ﻿using System.Threading.Tasks;
+using Telegram.Bot;
 using Telegram.Bot.Types;
 
 namespace ScheduleBot.Interfaces
 {
     public interface ISystem
     {
-        void Initialize(IBot bot);
+        Task OnInlineQueryReceivedAsync(ITelegramBotClient client, InlineQuery inlineQuery);
 
-        Task OnStartupAsync();
+        Task OnCallbackQueryReceivedAsync(ITelegramBotClient client, CallbackQuery callbackQuery);
 
-        Task OnUpdateReceivedAsync(Update update);
+        Task OnCommandReceivedAsync(ITelegramBotClient client, Message command);
 
-        Task OnCommandReceivedAsync(Message message);
+        Task OnMessageReceivedAsync(ITelegramBotClient client, Message message);
 
-        Task OnMessageReceivedAsync(Message message);
+        Task OnEditedMessageReceivedAsync(ITelegramBotClient client, Message message);
+
+        Task OnUnknownUpdateReceivedAsync(ITelegramBotClient client, Update update);
     }
 }

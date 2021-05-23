@@ -1,47 +1,40 @@
 ﻿using ScheduleBot.Interfaces;
-using System;
 using System.Threading.Tasks;
+using Telegram.Bot;
 using Telegram.Bot.Types;
 
 namespace ScheduleBot.Systems
 {
     public abstract class SystemBase : ISystem
     {
-        protected Bot Bot { get; private set; }
-
-        public void Initialize(IBot bot)
+        public virtual Task OnInlineQueryReceivedAsync(ITelegramBotClient client, InlineQuery inlineQuery)
         {
-            if (bot is null)
-            {
-                throw new ArgumentNullException(nameof(bot));
-            }
-
-            if (Bot != null)
-            {
-                throw new InvalidOperationException("Bot has already attached to this system");
-            }
-
-            Bot = bot as Bot;
+            return Task.CompletedTask;
         }
 
-        public virtual async Task OnStartupAsync()
+        public virtual Task OnCallbackQueryReceivedAsync(ITelegramBotClient client, CallbackQuery callbackQuery)
         {
-            await Task.CompletedTask;
+            return Task.CompletedTask;
         }
 
-        public virtual async Task OnUpdateReceivedAsync(Update update)
+        public virtual Task OnCommandReceivedAsync(ITelegramBotClient client, Message command)
         {
-            await Task.CompletedTask;
+            return Task.CompletedTask;
         }
 
-        public virtual async Task OnCommandReceivedAsync(Message message)
+        public virtual Task OnMessageReceivedAsync(ITelegramBotClient client, Message message)
         {
-            await Task.CompletedTask;
+            return Task.CompletedTask;
         }
 
-        public virtual async Task OnMessageReceivedAsync(Message message)
+        public virtual Task OnEditedMessageReceivedAsync(ITelegramBotClient client, Message message)
         {
-            await Task.CompletedTask;
+            return Task.CompletedTask;
+        }
+
+        public virtual Task OnUnknownUpdateReceivedAsync(ITelegramBotClient client, Update update)
+        {
+            return Task.CompletedTask;
         }
     }
 }

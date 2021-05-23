@@ -1,25 +1,29 @@
 ﻿using ScheduleBot.Attributes;
+using ScheduleBot.Data.Interfaces;
 using ScheduleBot.Parser.Interfaces;
 using System.Threading.Tasks;
+using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
 namespace ScheduleBot.Systems
 {
     [Command(pattern: "/settings")]
-    public class SettingsSystem : SystemBase
+    public class FetchSettingsSystem : SystemBase
     {
+        private readonly IBotUnitOfWork _unitOfWork;
         private readonly IScheduleParser _scheduleParser;
 
-        public SettingsSystem(IScheduleParser scheduleParser)
+        public FetchSettingsSystem(IBotUnitOfWork unitOfWork, IScheduleParser scheduleParser)
         {
+            _unitOfWork = unitOfWork;
             _scheduleParser = scheduleParser;
         }
 
-        public override async Task OnCommandReceivedAsync(Message message)
+        public override async Task OnCommandReceivedAsync(ITelegramBotClient client, Message command)
         {
-            var chatId = message.Chat.Id;
-            var userSchedule = await Bot.UnitOfWork.UserSchedules.FindUserSchedule(chatId);
+            var chatId = command.Chat.Id;
+            var userSchedule = await _unitOfWork.UserSchedules.FindUserSchedule(chatId);
 
             if (userSchedule != null)
             {
@@ -27,7 +31,7 @@ namespace ScheduleBot.Systems
                 var faculty = await _scheduleParser.ParseFacultyAsync(facultyId);
                 var group = await _scheduleParser.ParseGroupAsync(facultyId, userSchedule.GroupId, userSchedule.GroupTypeId);
 
-                await Bot.Client.SendTextMessageAsync
+                await client.SendTextMessageAsync
                 (
                     chatId,
                     "<b>Текущие настройки:</b>\n" +
@@ -38,7 +42,7 @@ namespace ScheduleBot.Systems
             }
             else
             {
-                await Bot.Client.SendTextMessageAsync
+                await client.SendTextMessageAsync
                 (
                     chatId,
                     "<b>Текущие настройки:</b>\n" +
