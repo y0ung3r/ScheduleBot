@@ -12,8 +12,8 @@ using Telegram.Bot.Types;
 
 namespace ScheduleBot.Systems
 {
-    [Command(pattern: "/setup")]
-    public class SetupSystem : SystemBase
+    [Command(pattern: "/bind")]
+    public class BindSystem : SystemBase
     {
         public class SetupStage
         {
@@ -33,11 +33,73 @@ namespace ScheduleBot.Systems
         private ICollection<Faculty> _faculties;
         private ICollection<Group> _groups;
 
-        public SetupSystem(IBotUnitOfWork unitOfWork, IScheduleParser scheduleParser)
+        public BindSystem(IBotUnitOfWork unitOfWork, IScheduleParser scheduleParser)
         {
             _unitOfWork = unitOfWork;
             _scheduleParser = scheduleParser;
             _stages = new List<SetupStage>();
+        }
+
+        private async Task AskUserFacultyAsync(ITelegramBotClient client, SetupStage stage, string callbackData)
+        {
+            stage.ChoosedFaculty = _faculties.FirstOrDefault(faculty => faculty.Abbreviation.Equals(callbackData));
+
+            if (stage.ChoosedFaculty != null)
+            {
+                _groups = await _scheduleParser.ParseGroupsAsync(stage.ChoosedFaculty.Id);
+
+                var inlineKeyboard = _groups.ToInlineKeyboard
+                (
+                    group => group.Title,
+                    columnsCount: 3
+                );
+
+                await client.SendTextMessageAsync
+                (
+                    stage.ChatId,
+                    "Теперь выберите группу:",
+                    replyMarkup: inlineKeyboard
+                );
+            }
+        }
+
+        private async Task AskUserGroupAsync(ITelegramBotClient client, SetupStage stage, string callbackData)
+        {
+            stage.ChoosedGroup = _groups.FirstOrDefault(group => group.Title.Equals(callbackData));
+
+            if (stage.ChoosedGroup != null)
+            {
+                var chatParameters = await _unitOfWork.ChatParameters.FindChatParameters(stage.ChatId);
+
+                if (chatParameters is null)
+                {
+                    chatParameters = new ChatParameters()
+                    {
+                        ChatId = stage.ChatId,
+                        FacultyId = stage.ChoosedFaculty.Id,
+                        GroupId = stage.ChoosedGroup.Id,
+                        GroupTypeId = stage.ChoosedGroup.TypeId
+                    };
+
+                    await _unitOfWork.ChatParameters.AddAsync(chatParameters);
+                }
+                else
+                {
+                    chatParameters.FacultyId = stage.ChoosedFaculty.Id;
+                    chatParameters.GroupId = stage.ChoosedGroup.Id;
+                    chatParameters.GroupTypeId = stage.ChoosedGroup.TypeId;
+                }
+
+                await _unitOfWork.SaveChangesAsync();
+
+                await client.SendTextMessageAsync
+                (
+                    stage.ChatId,
+                    "Настройка завершена. Теперь Вы будете получать расписание с учетом сохраненных параметров"
+                );
+
+                _stages.Remove(stage);
+            }
         }
 
         public override async Task OnCallbackQueryReceivedAsync(ITelegramBotClient client, CallbackQuery callbackQuery)
@@ -80,7 +142,7 @@ namespace ScheduleBot.Systems
 
             _faculties = await _scheduleParser.ParseFacultiesAsync();
 
-            var replyKeyboard = _faculties.ToInlineKeyboard
+            var inlineKeyboard = _faculties.ToInlineKeyboard
             (
                 faculty => faculty.Abbreviation,
                 columnsCount: 2
@@ -90,71 +152,8 @@ namespace ScheduleBot.Systems
             (
                 chatId,
                 "Выберите факультет, к которому Вас нужно прикрепить:",
-                replyMarkup: replyKeyboard
+                replyMarkup: inlineKeyboard
             );
-        }
-
-        private async Task AskUserFacultyAsync(ITelegramBotClient client, SetupStage stage, string callbackData)
-        {
-            stage.ChoosedFaculty = _faculties.FirstOrDefault(faculty => faculty.Abbreviation.Equals(callbackData));
-
-            if (stage.ChoosedFaculty != null)
-            {
-                _groups = await _scheduleParser.ParseGroupsAsync(stage.ChoosedFaculty.Id);
-
-                var replyKeyboard = _groups.ToInlineKeyboard
-                (
-                    group => group.Title,
-                    columnsCount: 2
-                );
-
-                await client.SendTextMessageAsync
-                (
-                    stage.ChatId,
-                    "Теперь выберите группу:",
-                    replyMarkup: replyKeyboard
-                );
-            }
-        }
-
-        private async Task AskUserGroupAsync(ITelegramBotClient client, SetupStage stage, string callbackData)
-        {
-            stage.ChoosedGroup = _groups.FirstOrDefault(group => group.Title.Equals(callbackData));
-
-            if (stage.ChoosedGroup != null)
-            {
-                var userSchedule = await _unitOfWork.UserSchedules.FindUserSchedule(stage.ChatId);
-
-                if (userSchedule is null)
-                {
-                    userSchedule = new UserSchedule()
-                    {
-                        ChatId = stage.ChatId,
-                        FacultyId = stage.ChoosedFaculty.Id,
-                        GroupId = stage.ChoosedGroup.Id,
-                        GroupTypeId = stage.ChoosedGroup.TypeId
-                    };
-
-                    await _unitOfWork.UserSchedules.AddAsync(userSchedule);
-                }
-                else
-                {
-                    userSchedule.FacultyId = stage.ChoosedFaculty.Id;
-                    userSchedule.GroupId = stage.ChoosedGroup.Id;
-                    userSchedule.GroupTypeId = stage.ChoosedGroup.TypeId;
-                }
-
-                await _unitOfWork.SaveChangesAsync();
-
-                await client.SendTextMessageAsync
-                (
-                    stage.ChatId,
-                    "Отлично, настройка завершена!\n" +
-                    "Теперь Вы будете получать расписание с учетом сохраненных параметров"
-                );
-
-                _stages.Remove(stage);
-            }
         }
     }
 }

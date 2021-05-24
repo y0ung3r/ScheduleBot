@@ -33,7 +33,7 @@ namespace ScheduleBot
                       .SetToken(ConfigurationManager.AppSettings["token"])
                       .UseSystem<MainSystem>()
                       .UseSystem<FetchSettingsSystem>()
-                      .UseSystem<SetupSystem>()
+                      .UseSystem<BindSystem>()
                       .UseSystem<FetchScheduleSystem>()
                       .Build()
                       .Run();

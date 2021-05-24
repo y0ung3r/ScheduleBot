@@ -5,12 +5,12 @@ namespace ScheduleBot.Data
 {
     public class BotUnitOfWork : EntityFrameworkUnitOfWork<BotContext>, IBotUnitOfWork
     {
-        public IUserScheduleRepository UserSchedules { get; } 
+        public IChatParametersRepository ChatParameters { get; } 
 
         public BotUnitOfWork(BotContext context)
             : base(context)
         {
-            UserSchedules = new UserScheduleRepository(Context);
+            ChatParameters = new ChatParametersRepository(Context);
         }
     }
 }

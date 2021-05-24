@@ -1,6 +1,6 @@
 ﻿namespace ScheduleBot.Data.Models
 {
-    public class UserSchedule
+    public class ChatParameters
     {
         public int Id { get; set; }
 

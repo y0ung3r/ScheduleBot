@@ -18,19 +18,19 @@ namespace ScheduleBot.Parser.Extensions
         public static ICollection<DateTime> GetWeekDates(this DateTime dateTime, DayOfWeek startOfWeekDay)
         {
             return Enumerable.Range
-                             (
-                                 start: 0, 
-                                 count: 7
-                             )
-                             .Select(dayNumber =>
-                             {
-                                 var startOfWeekDate = dateTime.Date.GetStartOfWeek(startOfWeekDay);
-                                 return startOfWeekDate.AddDays(dayNumber);
-                             })
-                             .ToList();
+            (
+                start: 0,
+                count: 7
+            )
+            .Select(dayNumber =>
+            {
+                var startOfWeekDate = dateTime.Date.GetStartOfWeek(startOfWeekDay);
+                return startOfWeekDate.AddDays(dayNumber);
+            })
+            .ToList();
         }
 
-        public static int GetWeekOffsetBy(this DateTime relativeDateTime, DateTime startDateTime, DayOfWeek firstDayOfWeek)
+        public static int GetRelativeWeek(this DateTime relativeDateTime, DateTime startDateTime, DayOfWeek firstDayOfWeek)
         {
             var calendar = CultureInfo.CurrentCulture.Calendar;
             var weekRule = CalendarWeekRule.FirstFourDayWeek;

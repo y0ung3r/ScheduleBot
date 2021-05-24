@@ -5,7 +5,7 @@ namespace ScheduleBot.Data
 {
     public class BotContext : DbContext
     {
-        public DbSet<UserSchedule> UserSchedules { get; }
+        public DbSet<ChatParameters> ChatParameters { get; }
 
         public BotContext(DbContextOptions<BotContext> options)
             : base(options)

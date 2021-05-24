@@ -5,13 +5,13 @@ using System.Threading.Tasks;
 
 namespace ScheduleBot.Data.Repositories
 {
-    public class UserScheduleRepository : EntityFrameworkRepository<BotContext, UserSchedule>, IUserScheduleRepository
+    public class ChatParametersRepository : EntityFrameworkRepository<BotContext, ChatParameters>, IChatParametersRepository
     {
-        public UserScheduleRepository(BotContext context)
+        public ChatParametersRepository(BotContext context)
             : base(context)
         { }
 
-        public async Task<UserSchedule> FindUserSchedule(long chatId)
+        public async Task<ChatParameters> FindChatParameters(long chatId)
         {
             return await Models.FirstOrDefaultAsync(userSchedule => userSchedule.ChatId.Equals(chatId));
         } 

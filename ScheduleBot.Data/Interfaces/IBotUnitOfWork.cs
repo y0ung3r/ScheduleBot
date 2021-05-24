@@ -2,6 +2,6 @@
 {
     public interface IBotUnitOfWork : IEntityFrameworkUnitOfWork
     {
-        IUserScheduleRepository UserSchedules { get; }
+        IChatParametersRepository ChatParameters { get; }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using ScheduleBot.Attributes;
 using ScheduleBot.Data.Interfaces;
 using ScheduleBot.Parser.Interfaces;
+using System.Text;
 using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -23,34 +24,33 @@ namespace ScheduleBot.Systems
         public override async Task OnCommandReceivedAsync(ITelegramBotClient client, Message command)
         {
             var chatId = command.Chat.Id;
-            var userSchedule = await _unitOfWork.UserSchedules.FindUserSchedule(chatId);
+            var chatParameters = await _unitOfWork.ChatParameters.FindChatParameters(chatId);
 
-            if (userSchedule != null)
+            var stringBuilder = new StringBuilder();
+
+            if (chatParameters != null)
             {
-                var facultyId = userSchedule.FacultyId;
+                var facultyId = chatParameters.FacultyId;
                 var faculty = await _scheduleParser.ParseFacultyAsync(facultyId);
-                var group = await _scheduleParser.ParseGroupAsync(facultyId, userSchedule.GroupId, userSchedule.GroupTypeId);
+                var group = await _scheduleParser.ParseGroupAsync(facultyId, chatParameters.GroupId, chatParameters.GroupTypeId);
 
-                await client.SendTextMessageAsync
-                (
-                    chatId,
-                    "<b>Текущие настройки:</b>\n" +
-                    $"Факультет: <i>{faculty.TitleWithoutFacultyTag}</i>\n" +
-                    $"Группа: <i>{group.Title}</i>",
-                    ParseMode.Html
-                );
+                stringBuilder.AppendLine("<b>Текущие настройки:</b>")
+                             .AppendLine($"Факультет: <i>{faculty.TitleWithoutFacultyTag}</i>")
+                             .AppendLine($"Группа: <i>{group.Title}</i>");
             }
             else
             {
-                await client.SendTextMessageAsync
-                (
-                    chatId,
-                    "<b>Текущие настройки:</b>\n" +
-                    "Отсутствуют\n" +
-                    "Используйте /setup, чтобы начать работу с ботом",
-                    ParseMode.Html
-                );
+                stringBuilder.AppendLine("<b>Текущие настройки:</b>")
+                             .AppendLine($"Отсутствуют")
+                             .AppendLine($"Используйте /setup, чтобы начать работу с ботом");
             }
+
+            await client.SendTextMessageAsync
+            (
+                chatId,
+                stringBuilder.ToString(),
+                ParseMode.Html
+            );
         }
     }
 }

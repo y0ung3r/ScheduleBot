@@ -15,6 +15,8 @@ namespace ScheduleBot.Parser.Interfaces
 
         Task<Group> ParseGroupAsync(int facultyId, int groupId, int groupTypeId);
 
-        Task<ICollection<Lesson>> ParseLessonsAsync(Group group, DateTime dateTime);
+        Task<ICollection<StudyDay>> ParseStudyDaysAsync(Group group, DateTime startDateTime, DateTime endDateTime);
+
+        Task<StudyDay> ParseStudyDayAsync(Group group, DateTime dateTime);
     }
 }

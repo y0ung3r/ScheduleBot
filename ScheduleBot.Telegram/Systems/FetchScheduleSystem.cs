@@ -1,13 +1,17 @@
 ﻿using ScheduleBot.Attributes;
 using ScheduleBot.Data.Interfaces;
+using ScheduleBot.Extensions;
+using ScheduleBot.Parser.Extensions;
 using ScheduleBot.Parser.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace ScheduleBot.Systems
 {
@@ -26,75 +30,66 @@ namespace ScheduleBot.Systems
         public override async Task OnCommandReceivedAsync(ITelegramBotClient client, Message command)
         {
             var chatId = command.Chat.Id;
-            var userSchedule = await _unitOfWork.UserSchedules.FindUserSchedule(chatId);
+            var chatParameters = await _unitOfWork.ChatParameters.FindChatParameters(chatId);
 
-            if (userSchedule != null)
+            var stringBuilder = new StringBuilder();
+
+            if (chatParameters != null)
             {
-                var userGroup = await _scheduleParser.ParseGroupAsync(userSchedule.FacultyId, userSchedule.GroupId, userSchedule.GroupTypeId);
+                var group = await _scheduleParser.ParseGroupAsync(chatParameters.FacultyId, chatParameters.GroupId, chatParameters.GroupTypeId);
 
                 var dateTime = DateTime.Today;
-                var lessons = await _scheduleParser.ParseLessonsAsync(userGroup, dateTime);
+                var studyDay = await _scheduleParser.ParseStudyDayAsync(group, dateTime);
 
-                var lessonsMarkup = new List<string>()
-                {
-                    $"<b>Расписание на {dateTime.ToShortDateString()}:</b>"
-                };
+                stringBuilder.AppendLine($"<b>Расписание на {dateTime.ToShortDateString()}:</b>")
+                             .AppendLine();
 
-                if (lessons.Count > 0)
+                if (studyDay.Lessons.Count > 0)
                 {
-                    lessonsMarkup.AddRange
-                    (
-                        lessons.Select(lesson =>
+                    foreach (var lesson in studyDay.Lessons)
+                    {
+                        stringBuilder.AppendLine($"<b>{lesson.Number} {lesson.Title}</b>");
+
+                        if (!string.IsNullOrWhiteSpace(lesson.Type))
                         {
-                            var header = $"<b>{lesson.Number} {lesson.Title}</b>\n";
-                            var type = string.Empty;
-
-                            if (!string.IsNullOrWhiteSpace(lesson.Type))
-                            {
-                                type = $"<i>{lesson.Type}</i>";
-                            }
-
-                            var classroomNumber = string.Empty;
+                            stringBuilder.Append($"<i>{lesson.Type}</i>");
 
                             if (!string.IsNullOrWhiteSpace(lesson.ClassroomNumber))
                             {
-                                classroomNumber = $" <i>{lesson.ClassroomNumber}</i> в ";
+                                stringBuilder.Append($" <i>{lesson.ClassroomNumber}</i>");
                             }
 
-                            var additionalInfo = string.Concat(type, classroomNumber, $"{lesson.TimeRange}\n");
+                            stringBuilder.Append($" в {lesson.TimeRange}");
+                        }
 
-                            var teachers = string.Empty;
+                        stringBuilder.AppendLine();
 
-                            if (lesson.Teachers.Count > 0)
-                            {
-                                teachers = $"{string.Join(separator: ", ", lesson.Teachers)}";
-                            }
+                        if (lesson.Teachers.Count > 0)
+                        {
+                            stringBuilder.AppendJoin(", ", lesson.Teachers);
+                        }
 
-                            return string.Concat(header, additionalInfo, teachers);
-                        })
-                    );
+                        stringBuilder.AppendLine()
+                                     .AppendLine();
+                    }
                 }
                 else
                 {
-                    lessonsMarkup.Add("Пары отсутствуют");
+                    stringBuilder.AppendLine("Пары отсутствуют");
                 }
-
-                await client.SendTextMessageAsync
-                (
-                    chatId,
-                    string.Join("\n\n", lessonsMarkup),
-                    ParseMode.Html
-                );
             }
             else
             {
-                await client.SendTextMessageAsync
-                (
-                    chatId,
-                    "Вы не настроили бота, чтобы использовать этот функционал.\nИспользуйте /setup, чтобы начать работу",
-                    ParseMode.Html
-                );
+                stringBuilder.AppendLine("Вы не настроили бота, чтобы использовать этот функционал.")
+                             .AppendLine("Используйте /bind, чтобы начать работу");
             }
+
+            await client.SendTextMessageAsync
+            (
+                chatId,
+                stringBuilder.ToString(),
+                ParseMode.Html
+            );
         }
     }
 }

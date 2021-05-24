@@ -52,7 +52,7 @@ namespace ScheduleBot.Parser
         {
             var faculties = await ParseFacultiesAsync();
 
-            return faculties.FirstOrDefault(faculty => faculty.Id.Equals(facultyId)); 
+            return faculties.FirstOrDefault(faculty => faculty.Id.Equals(facultyId));
         }
 
         public async Task<ICollection<Group>> ParseGroupsAsync(int facultyId)
@@ -98,9 +98,32 @@ namespace ScheduleBot.Parser
             return groups.FirstOrDefault(group => group.Id.Equals(groupId) && group.TypeId.Equals(groupTypeId));
         }
 
-        public async Task<ICollection<Lesson>> ParseLessonsAsync(Group group, DateTime dateTime)
+        public async Task<ICollection<StudyDay>> ParseStudyDaysAsync(Group group, DateTime startDateTime, DateTime endDateTime)
         {
-            var weekNumber = dateTime.GetWeekOffsetBy(DateTime.Today, DayOfWeek.Monday);
+            if (startDateTime > endDateTime)
+            {
+                throw new ArgumentException($"\"{nameof(startDateTime)}\" can be earlier than \"{nameof(endDateTime)}\"");
+            }
+
+            var studyDays = new List<StudyDay>();
+
+            for (var dateTime = startDateTime; dateTime < endDateTime; dateTime.AddDays(value: 1))
+            {
+                studyDays.Add
+                (
+                    await ParseStudyDayAsync(group, dateTime)
+                );
+            }
+
+            return studyDays;
+        }
+
+        public async Task<StudyDay> ParseStudyDayAsync(Group group, DateTime dateTime)
+        {
+            var studyDay = new StudyDay()
+            {
+                WeekNumber = dateTime.GetRelativeWeek(DateTime.Today, DayOfWeek.Monday)
+            };
 
             var content = new FormUrlEncodedContent
             (
@@ -116,7 +139,7 @@ namespace ScheduleBot.Parser
                     },
                     {
                         "week",
-                        $"{weekNumber}"
+                        $"{studyDay.WeekNumber}"
                     }
                 }
             );
@@ -127,71 +150,76 @@ namespace ScheduleBot.Parser
                 content
             );
 
-            var day = page.DocumentNode
-                          .SelectNodes(".//*[contains(@class, 'day')]")
-                          .FirstOrDefault(node =>
-                          {
-                              var dateFromSchedule = DateTime.Parse
-                              (
-                                  node.SelectNodes(".//*[contains(@class, 'date student')]")
-                                      .FirstOrDefault()
-                                      .InnerText
-                                      .Split(" ")
-                                      .Last()
-                              );
-
-                              return dateFromSchedule.Date.CompareTo(dateTime.Date).Equals(0);
-                          });
-
-            return day?.SelectNodes(".//ul/*[contains(@class, 'lesson add_background')]")?
-                       .Select(node =>
-                       {
-                           var number = node.SelectNodes(".//*[contains(@class, 'number')]")
-                                            .Nodes()
-                                            .FirstOrDefault()
-                                            .InnerText;
-
-                           var title = node.SelectNodes(".//*[contains(@class, 'name')]")
-                                           .Nodes()
-                                           .FirstOrDefault()
-                                           .InnerText;
-
-                           var timeRange = node.SelectNodes(".//*[contains(@class, 'time')]")
-                                               .Nodes()
-                                               .FirstOrDefault()
-                                               .InnerText;
-
-                           var type = node.SelectNodes(".//*[contains(@class, 'type')]")
-                                          .Nodes()
-                                          .LastOrDefault()
+            var dayNode = page.DocumentNode
+                              .SelectNodes(".//*[contains(@class, 'day')]")
+                              .FirstOrDefault(node =>
+                              {
+                                  var dateFromSchedule = DateTime.Parse
+                                  (
+                                      node.SelectNodes(".//*[contains(@class, 'date student')]")
+                                          .FirstOrDefault()
                                           .InnerText
-                                          .Trim();
+                                          .Split(" ")
+                                          .Last()
+                                  );
 
-                           var classroomNumber = node.SelectNodes(".//*[contains(@class, 'cab')]")
-                                                     .Nodes()
-                                                     .FirstOrDefault()
-                                                     .InnerText;
+                                  return dateFromSchedule.Date.CompareTo(dateTime.Date).Equals(0);
+                              });
 
-                           var teachers = node.SelectNodes(".//*[contains(@class, 'prep')]")
-                                              .Nodes()
-                                              .SelectMany(node => node.ChildNodes)
-                                              .Select
-                                              (
-                                                  node => node.InnerText.Replace("(", " (")
-                                              )
-                                              .ToList();
+            if (dayNode != null)
+            {
+                studyDay.Lessons = dayNode.SelectNodes(".//ul/*[contains(@class, 'lesson add_background')]")?
+                                          .Select(node =>
+                                          {
+                                              var number = node.SelectNodes(".//*[contains(@class, 'number')]")
+                                                               .Nodes()
+                                                               .FirstOrDefault()
+                                                               .InnerText;
 
-                           return new Lesson
-                           {
-                               Number = number,
-                               Title = title,
-                               TimeRange = timeRange,
-                               Type = type,
-                               ClassroomNumber = classroomNumber,
-                               Teachers = teachers
-                           };
-                       })
-                       .ToList() ?? new List<Lesson>();
+                                              var title = node.SelectNodes(".//*[contains(@class, 'name')]")
+                                                              .Nodes()
+                                                              .FirstOrDefault()
+                                                              .InnerText;
+
+                                              var timeRange = node.SelectNodes(".//*[contains(@class, 'time')]")
+                                                                  .Nodes()
+                                                                  .FirstOrDefault()
+                                                                  .InnerText;
+
+                                              var type = node.SelectNodes(".//*[contains(@class, 'type')]")
+                                                             .Nodes()
+                                                             .LastOrDefault()
+                                                             .InnerText
+                                                             .Trim();
+
+                                              var classroomNumber = node.SelectNodes(".//*[contains(@class, 'cab')]")
+                                                                        .Nodes()
+                                                                        .FirstOrDefault()
+                                                                        .InnerText;
+
+                                              var teachers = node.SelectNodes(".//*[contains(@class, 'prep')]")
+                                                                 .Nodes()
+                                                                 .SelectMany(node => node.ChildNodes)
+                                                                 .Select
+                                                                 (
+                                                                     node => node.InnerText.Replace("(", " (")
+                                                                 )
+                                                                 .ToList();
+
+                                              return new Lesson
+                                              {
+                                                  Number = number,
+                                                  Title = title,
+                                                  TimeRange = timeRange,
+                                                  Type = type,
+                                                  ClassroomNumber = classroomNumber,
+                                                  Teachers = teachers
+                                              };
+                                          })
+                                          .ToList();
+            }
+
+            return studyDay;
         }
     }
 }
