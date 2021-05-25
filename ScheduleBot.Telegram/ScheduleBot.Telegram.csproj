@@ -24,9 +24,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Database.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="Bot.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
