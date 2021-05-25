@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using ScheduleBot.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -24,6 +25,7 @@ namespace ScheduleBot.Telegram.Extensions
         {
             services.AddScoped<IBot, TelegramBot>(serviceProvider =>
             {
+                var logger = serviceProvider.GetRequiredService<ILogger<TelegramBot>>();
                 var client = serviceProvider.GetRequiredService<ITelegramBotClient>();
 
                 var readOnlySystems = new ReadOnlyCollection<ISystem<ITelegramBotClient>>
@@ -47,6 +49,7 @@ namespace ScheduleBot.Telegram.Extensions
 
                 return new TelegramBot
                 (
+                    logger,
                     client,
                     readOnlySystems
                 );

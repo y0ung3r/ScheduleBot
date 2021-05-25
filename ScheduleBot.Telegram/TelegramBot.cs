@@ -1,4 +1,5 @@
-﻿using ScheduleBot.Extensions;
+﻿using Microsoft.Extensions.Logging;
+using ScheduleBot.Extensions;
 using ScheduleBot.Interfaces;
 using ScheduleBot.Telegram.Systems;
 using System;
@@ -16,18 +17,22 @@ namespace ScheduleBot.Telegram
 {
     public class TelegramBot : IBot
     {
+        private readonly ILogger<TelegramBot> _logger;
         private readonly ITelegramBotClient _client;
         private readonly IReadOnlyCollection<ISystem<ITelegramBotClient>> _systems;
         private ISystem<ITelegramBotClient> _executedSystem;
 
-        public TelegramBot(ITelegramBotClient client, IReadOnlyCollection<ISystem<ITelegramBotClient>> systems)
+        public TelegramBot(ILogger<TelegramBot> logger, ITelegramBotClient client, IReadOnlyCollection<ISystem<ITelegramBotClient>> systems)
         {
+            _logger = logger;
             _client = client;
             _systems = systems;
         }
 
         private async Task OnUpdateReceivedAsync(Update update)
         {
+            _logger.LogInformation("Update received");
+
             if (update.Type.Equals(UpdateType.Message))
             {
                 var message = update.Message;
@@ -38,8 +43,10 @@ namespace ScheduleBot.Telegram
                     _executedSystem = nextSystem;
                     
                     await _executedSystem.OnCommandReceivedAsync(message);
+
+                    _logger.LogInformation($"Command sended to the system \"{_executedSystem.GetType()}\"");
                 }
-                else
+                else if (_executedSystem != null)
                 {
                     await _executedSystem.OnMessageReceivedAsync(message);
                 }
@@ -55,6 +62,8 @@ namespace ScheduleBot.Telegram
                     _ => system.OnUnknownUpdateReceivedAsync(update)
                 };
 
+                _logger.LogInformation($"Updates sended to the system \"{system.GetType()}\"");
+
                 await updateHandler;
             }
         }
@@ -67,7 +76,7 @@ namespace ScheduleBot.Telegram
                 _ => exception.ToString()
             };
 
-            Console.WriteLine(errorMessage);
+            _logger.LogError(errorMessage);
 
             return Task.CompletedTask;
         }
@@ -93,7 +102,8 @@ namespace ScheduleBot.Telegram
                                    .GetResult()
                                    .FirstName;
 
-            Console.WriteLine("Bot is running");
+            _logger.LogInformation("Bot is running");
+
             Console.ReadKey();
 
             _client.StopReceiving();

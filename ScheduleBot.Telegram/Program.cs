@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using ScheduleBot.Data;
 using ScheduleBot.Data.Interfaces;
 using ScheduleBot.Data.UnitOfWorks;
@@ -20,12 +21,18 @@ namespace ScheduleBot.Telegram
 
             botBuilder.ConfigureServices(services =>
                       {
+                          services.AddLogging(loggingBuilder =>
+                          {
+                              loggingBuilder.ClearProviders();
+                              loggingBuilder.AddConsole();
+                          });
+
                           services.AddDbContext<BotContext>(options =>
                           {
-                              if (!options.IsConfigured)
-                              {
-                                  options.UseSqlServer(ConfigurationManager.ConnectionStrings["ScheduleBot"].ConnectionString);
-                              }
+                              options.UseSqlServer
+                              (
+                                  ConfigurationManager.ConnectionStrings["ScheduleBot"].ConnectionString
+                              );
                           });
 
                           services.TryAddScoped<IBotUnitOfWork, BotUnitOfWork>();
