@@ -1,21 +1,22 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using ScheduleBot.Builders;
 using ScheduleBot.Data;
 using ScheduleBot.Data.Interfaces;
+using ScheduleBot.Data.UnitOfWorks;
 using ScheduleBot.Parser;
 using ScheduleBot.Parser.Interfaces;
-using ScheduleBot.Systems;
+using ScheduleBot.Telegram.Builders;
+using ScheduleBot.Telegram.Systems;
 using System.Configuration;
 
-namespace ScheduleBot
+namespace ScheduleBot.Telegram
 {
     public class Program
     {
         public static void Main(string[] args)
         {
-            var botBuilder = new BotBuilder();
+            var botBuilder = new TelegramBotBuilder();
 
             botBuilder.ConfigureServices(services =>
                       {

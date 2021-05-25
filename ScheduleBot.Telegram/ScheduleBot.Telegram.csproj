@@ -20,6 +20,7 @@
   <ItemGroup>
     <ProjectReference Include="..\ScheduleBot.Data\ScheduleBot.Data.csproj" />
     <ProjectReference Include="..\ScheduleBot.Parser\ScheduleBot.Parser.csproj" />
+    <ProjectReference Include="..\ScheduleBot\ScheduleBot.csproj" />
   </ItemGroup>
 
   <ItemGroup>

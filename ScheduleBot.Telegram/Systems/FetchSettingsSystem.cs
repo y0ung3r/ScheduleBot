@@ -7,10 +7,10 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
-namespace ScheduleBot.Systems
+namespace ScheduleBot.Telegram.Systems
 {
     [Command(pattern: "/settings")]
-    public class FetchSettingsSystem : SystemBase
+    public class FetchSettingsSystem : TelegramSystemBase
     {
         private readonly IBotUnitOfWork _unitOfWork;
         private readonly IScheduleParser _scheduleParser;
@@ -21,7 +21,7 @@ namespace ScheduleBot.Systems
             _scheduleParser = scheduleParser;
         }
 
-        public override async Task OnCommandReceivedAsync(ITelegramBotClient client, Message command)
+        protected override async Task OnCommandReceivedAsync(Message command)
         {
             var chatId = command.Chat.Id;
             var chatParameters = await _unitOfWork.ChatParameters.FindChatParameters(chatId);
@@ -45,7 +45,7 @@ namespace ScheduleBot.Systems
                              .AppendLine($"Используйте /setup, чтобы начать работу с ботом");
             }
 
-            await client.SendTextMessageAsync
+            await Client.SendTextMessageAsync
             (
                 chatId,
                 stringBuilder.ToString(),

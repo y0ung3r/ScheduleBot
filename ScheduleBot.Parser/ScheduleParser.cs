@@ -1,4 +1,5 @@
-﻿using ScheduleBot.Parser.Extensions;
+﻿using ScheduleBot.Extensions;
+using ScheduleBot.Parser.Extensions;
 using ScheduleBot.Parser.Interfaces;
 using ScheduleBot.Parser.Models;
 using System;
@@ -20,7 +21,7 @@ namespace ScheduleBot.Parser
 
         public async Task<ICollection<Faculty>> ParseFacultiesAsync()
         {
-            var page = await _httpClient.CreateHtmlDocumentByGetAsync
+            var page = await _httpClient.CreateHtmlDocumentAsync
             (
                 ParserRoutes.GetBaseUri()
             );
@@ -57,7 +58,7 @@ namespace ScheduleBot.Parser
 
         public async Task<ICollection<Group>> ParseGroupsAsync(int facultyId)
         {
-            var page = await _httpClient.CreateHtmlDocumentByGetAsync
+            var page = await _httpClient.CreateHtmlDocumentAsync
             (
                 ParserRoutes.GetGroupsUri(facultyId)
             );
@@ -107,12 +108,15 @@ namespace ScheduleBot.Parser
 
             var studyDays = new List<StudyDay>();
 
-            for (var dateTime = startDateTime; dateTime < endDateTime; dateTime.AddDays(value: 1))
+            for (var dateTime = startDateTime; dateTime < endDateTime; dateTime = dateTime.AddDays(value: 1))
             {
-                studyDays.Add
-                (
-                    await ParseStudyDayAsync(group, dateTime)
-                );
+                if (!dateTime.DayOfWeek.Equals(DayOfWeek.Sunday))
+                {
+                    studyDays.Add
+                    (
+                        await ParseStudyDayAsync(group, dateTime)
+                    );
+                }
             }
 
             return studyDays;
@@ -120,8 +124,14 @@ namespace ScheduleBot.Parser
 
         public async Task<StudyDay> ParseStudyDayAsync(Group group, DateTime dateTime)
         {
+            if (dateTime.DayOfWeek.Equals(DayOfWeek.Sunday))
+            {
+                throw new ArgumentException($"The \"{nameof(dateTime)}\" cannot be sunday");
+            }
+
             var studyDay = new StudyDay()
             {
+                Date = dateTime.Date,
                 WeekNumber = dateTime.GetRelativeWeek(DateTime.Today, DayOfWeek.Monday)
             };
 
@@ -144,7 +154,7 @@ namespace ScheduleBot.Parser
                 }
             );
 
-            var page = await _httpClient.CreateHtmlDocumentByPostAsync
+            var page = await _httpClient.CreateHtmlDocumentAsync
             (
                 ParserRoutes.GetLessonsUri(),
                 content
@@ -168,55 +178,60 @@ namespace ScheduleBot.Parser
 
             if (dayNode != null)
             {
-                studyDay.Lessons = dayNode.SelectNodes(".//ul/*[contains(@class, 'lesson add_background')]")?
-                                          .Select(node =>
-                                          {
-                                              var number = node.SelectNodes(".//*[contains(@class, 'number')]")
-                                                               .Nodes()
-                                                               .FirstOrDefault()
-                                                               .InnerText;
+                var lessons = dayNode.SelectNodes(".//ul/*[contains(@class, 'lesson add_background')]")?
+                                     .Select(node =>
+                                     {
+                                         var number = node.SelectNodes(".//*[contains(@class, 'number')]")
+                                                          .Nodes()
+                                                          .FirstOrDefault()
+                                                          .InnerText;
 
-                                              var title = node.SelectNodes(".//*[contains(@class, 'name')]")
-                                                              .Nodes()
-                                                              .FirstOrDefault()
-                                                              .InnerText;
+                                         var title = node.SelectNodes(".//*[contains(@class, 'name')]")
+                                                         .Nodes()
+                                                         .FirstOrDefault()
+                                                         .InnerText;
 
-                                              var timeRange = node.SelectNodes(".//*[contains(@class, 'time')]")
-                                                                  .Nodes()
-                                                                  .FirstOrDefault()
-                                                                  .InnerText;
-
-                                              var type = node.SelectNodes(".//*[contains(@class, 'type')]")
+                                         var timeRange = node.SelectNodes(".//*[contains(@class, 'time')]")
                                                              .Nodes()
-                                                             .LastOrDefault()
-                                                             .InnerText
-                                                             .Trim();
+                                                             .FirstOrDefault()
+                                                             .InnerText;
 
-                                              var classroomNumber = node.SelectNodes(".//*[contains(@class, 'cab')]")
-                                                                        .Nodes()
-                                                                        .FirstOrDefault()
-                                                                        .InnerText;
+                                         var type = node.SelectNodes(".//*[contains(@class, 'type')]")
+                                                        .Nodes()
+                                                        .LastOrDefault()
+                                                        .InnerText
+                                                        .Trim();
 
-                                              var teachers = node.SelectNodes(".//*[contains(@class, 'prep')]")
-                                                                 .Nodes()
-                                                                 .SelectMany(node => node.ChildNodes)
-                                                                 .Select
-                                                                 (
-                                                                     node => node.InnerText.Replace("(", " (")
-                                                                 )
-                                                                 .ToList();
+                                         var classroomNumber = node.SelectNodes(".//*[contains(@class, 'cab')]")
+                                                                   .Nodes()
+                                                                   .FirstOrDefault()
+                                                                   .InnerText;
 
-                                              return new Lesson
-                                              {
-                                                  Number = number,
-                                                  Title = title,
-                                                  TimeRange = timeRange,
-                                                  Type = type,
-                                                  ClassroomNumber = classroomNumber,
-                                                  Teachers = teachers
-                                              };
-                                          })
-                                          .ToList();
+                                         var teachers = node.SelectNodes(".//*[contains(@class, 'prep')]")
+                                                            .Nodes()
+                                                            .SelectMany(node => node.ChildNodes)
+                                                            .Select
+                                                            (
+                                                                node => node.InnerText.Replace("(", " (")
+                                                            )
+                                                            .ToList();
+
+                                         return new Lesson
+                                         {
+                                             Number = number,
+                                             Title = title,
+                                             TimeRange = timeRange,
+                                             Type = type,
+                                             ClassroomNumber = classroomNumber,
+                                             Teachers = teachers
+                                         };
+                                     })
+                                     .ToList();
+
+                if (lessons != null)
+                {
+                    studyDay.Lessons = lessons;
+                }
             }
 
             return studyDay;

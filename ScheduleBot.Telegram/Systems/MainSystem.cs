@@ -1,16 +1,15 @@
 ﻿using ScheduleBot.Attributes;
 using System.Text;
 using System.Threading.Tasks;
-using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
-namespace ScheduleBot.Systems
+namespace ScheduleBot.Telegram.Systems
 {
     [Command(pattern: "/start, /help")]
-    public class MainSystem : SystemBase
+    public class MainSystem : TelegramSystemBase
     {
-        public override async Task OnCommandReceivedAsync(ITelegramBotClient client, Message command)
+        protected override async Task OnCommandReceivedAsync(Message command)
         {
             var stringBuilder = new StringBuilder();
 
@@ -23,7 +22,7 @@ namespace ScheduleBot.Systems
                          .AppendLine("<b>Возможности:</b>")
                          .AppendLine("/schedule - получить расписание на сегодня");
 
-            await client.SendTextMessageAsync
+            await Client.SendTextMessageAsync
             (
                 command.Chat.Id,
                 stringBuilder.ToString(),

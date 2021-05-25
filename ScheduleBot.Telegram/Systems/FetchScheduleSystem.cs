@@ -1,7 +1,6 @@
 ﻿using ScheduleBot.Attributes;
 using ScheduleBot.Data.Interfaces;
 using ScheduleBot.Extensions;
-using ScheduleBot.Parser.Extensions;
 using ScheduleBot.Parser.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -13,23 +12,35 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace ScheduleBot.Systems
+namespace ScheduleBot.Telegram.Systems
 {
     [Command(pattern: "/schedule")]
-    public class FetchScheduleSystem : SystemBase
+    public class FetchScheduleSystem : TelegramSystemBase
     {
+        public class FetchScheduleStage
+        {
+            public long ChatId { get; }
+
+            public FetchScheduleStage(long chatId)
+            {
+                ChatId = chatId;
+            }
+        }
+
         private readonly IBotUnitOfWork _unitOfWork;
         private readonly IScheduleParser _scheduleParser;
+        private readonly ICollection<FetchScheduleStage> _stages;
 
         public FetchScheduleSystem(IBotUnitOfWork unitOfWork, IScheduleParser scheduleParser)
         {
             _unitOfWork = unitOfWork;
             _scheduleParser = scheduleParser;
+            _stages = new List<FetchScheduleStage>();
         }
 
-        public override async Task OnCommandReceivedAsync(ITelegramBotClient client, Message command)
+        public override async Task OnCallbackQueryReceivedAsync(CallbackQuery callbackQuery)
         {
-            var chatId = command.Chat.Id;
+            var chatId = callbackQuery.Message.Chat.Id;
             var chatParameters = await _unitOfWork.ChatParameters.FindChatParameters(chatId);
 
             var stringBuilder = new StringBuilder();
@@ -84,11 +95,35 @@ namespace ScheduleBot.Systems
                              .AppendLine("Используйте /bind, чтобы начать работу");
             }
 
-            await client.SendTextMessageAsync
+            await Client.SendTextMessageAsync
             (
                 chatId,
                 stringBuilder.ToString(),
                 ParseMode.Html
+            );
+
+            await Client.AnswerCallbackQueryAsync(callbackQuery.Id);
+        }
+
+        protected override async Task OnCommandReceivedAsync(Message command)
+        {
+            var chatId = command.Chat.Id;
+            var stage = _stages.FirstOrDefault(stage => stage.ChatId.Equals(chatId));
+
+            if (stage != null)
+            {
+                _stages.Remove(stage);
+            }
+
+            _stages.Add
+            (
+                new FetchScheduleStage(chatId)
+            );
+
+            await Client.SendTextMessageAsync
+            (
+                chatId,
+                "Выберите нужную учебную неделю, чтобы получить расписание:"
             );
         }
     }

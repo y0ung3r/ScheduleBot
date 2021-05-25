@@ -1,28 +1,14 @@
-﻿using System;
+﻿using ScheduleBot.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace ScheduleBot.Extensions
+namespace ScheduleBot.Telegram.Extensions
 {
     public static class CollectionExtensions
     {
-        public static List<List<TSource>> ChunkBy<TSource>(this ICollection<TSource> source, int columnsCount)
-        {
-            return source.Select((element, index) => new 
-                         { 
-                             Index = index, 
-                             Value = element
-                         })
-                         .GroupBy(element => element.Index / columnsCount)
-                         .Select
-                         (
-                             element => element.Select(x => x.Value).ToList()
-                         )
-                         .ToList();
-        }
-
         public static IReplyMarkup ToReplyKeyboard<TSource, TProperty>(this ICollection<TSource> source, Expression<Func<TSource, TProperty>> property, int columnsCount, 
             bool resizeKeyboard = false, bool oneTimeKeyboard = false)
         {
@@ -38,8 +24,8 @@ namespace ScheduleBot.Extensions
             return new ReplyKeyboardMarkup()
             {
                 Keyboard = keyboardButtons.ChunkBy(columnsCount),
-                ResizeKeyboard = true,
-                OneTimeKeyboard = true
+                ResizeKeyboard = resizeKeyboard,
+                OneTimeKeyboard = oneTimeKeyboard
             };
         }
 

@@ -1,5 +1,5 @@
 ﻿using HtmlAgilityPack;
-using ScheduleBot.Parser.Interfaces;
+using ScheduleBot.Parser.Utils;
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -14,30 +14,26 @@ namespace ScheduleBot.Parser.Extensions
             return await response.Content.ReadAsStringAsync();
         }
 
-        public static async Task<HtmlDocument> CreateHtmlDocumentByGetAsync(this HttpClient httpClient, Uri uri)
-        {
-            var html = await GetAsync(httpClient, uri);
-
-            var htmlDocument = new HtmlDocument();
-            htmlDocument.LoadHtml(html);
-
-            return htmlDocument;
-        }
-
         public static async Task<string> PostAsync(this HttpClient httpClient, Uri uri, HttpContent content)
         {
             var response = await httpClient.PostAsync(uri, content);
             return await response.Content.ReadAsStringAsync();
         }
 
-        public static async Task<HtmlDocument> CreateHtmlDocumentByPostAsync(this HttpClient httpClient, Uri uri, HttpContent content)
+        public static async Task<HtmlDocument> CreateHtmlDocumentAsync(this HttpClient httpClient, Uri uri)
         {
-            var html = await PostAsync(httpClient, uri, content);
+            return HtmlDocumentHelper.CreateNew
+            (
+                await GetAsync(httpClient, uri)
+            );
+        }
 
-            var htmlDocument = new HtmlDocument();
-            htmlDocument.LoadHtml(html);
-
-            return htmlDocument;
+        public static async Task<HtmlDocument> CreateHtmlDocumentAsync(this HttpClient httpClient, Uri uri, HttpContent content)
+        {
+            return HtmlDocumentHelper.CreateNew
+            (
+                await PostAsync(httpClient, uri, content)
+            );
         }
     }
 }

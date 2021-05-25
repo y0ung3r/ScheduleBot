@@ -1,7 +1,7 @@
 ﻿using ScheduleBot.Data.Interfaces;
 using ScheduleBot.Data.Repositories;
 
-namespace ScheduleBot.Data
+namespace ScheduleBot.Data.UnitOfWorks
 {
     public class BotUnitOfWork : EntityFrameworkUnitOfWork<BotContext>, IBotUnitOfWork
     {

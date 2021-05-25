@@ -1,6 +1,6 @@
 ﻿using System.Linq;
 
-namespace ScheduleBot.Parser.Extensions
+namespace ScheduleBot.Extensions
 {
     public static class StringExtensions
     {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
-namespace ScheduleBot.Parser.Extensions
+namespace ScheduleBot.Extensions
 {
     public static class DateTimeExtensions
     {

@@ -2,7 +2,7 @@
 using ScheduleBot.Data.Interfaces;
 using System.Threading.Tasks;
 
-namespace ScheduleBot.Data
+namespace ScheduleBot.Data.UnitOfWorks
 {
     public class EntityFrameworkUnitOfWork<TContext> : IEntityFrameworkUnitOfWork
         where TContext : DbContext
