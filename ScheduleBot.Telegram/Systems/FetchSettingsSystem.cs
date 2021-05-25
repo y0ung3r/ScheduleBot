@@ -28,7 +28,7 @@ namespace ScheduleBot.Telegram.Systems
 
             var stringBuilder = new StringBuilder();
 
-            if (chatParameters != null)
+            if (chatParameters is not null)
             {
                 var facultyId = chatParameters.FacultyId;
                 var faculty = await _scheduleParser.ParseFacultyAsync(facultyId);

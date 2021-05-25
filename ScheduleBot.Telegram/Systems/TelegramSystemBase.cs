@@ -9,27 +9,7 @@ namespace ScheduleBot.Telegram.Systems
     {
         public ITelegramBotClient Client { get; private set; }
 
-        protected virtual Task OnCommandReceivedAsync(Message command)
-        {
-            return Task.CompletedTask;
-        }
-
-        protected virtual Task OnMessageReceivedAsync(Message message)
-        {
-            return Task.CompletedTask;
-        }
-
         public virtual Task OnInitializeAsync()
-        {
-            return Task.CompletedTask;
-        }
-
-        public virtual Task OnInlineQueryReceivedAsync(InlineQuery inlineQuery)
-        {
-            return Task.CompletedTask;
-        }
-
-        public virtual Task OnCallbackQueryReceivedAsync(CallbackQuery callbackQuery)
         {
             return Task.CompletedTask;
         }
@@ -42,6 +22,26 @@ namespace ScheduleBot.Telegram.Systems
         public Task OnMessageReceivedAsync(object message)
         {
             return OnCommandReceivedAsync(message as Message);
+        }
+
+        protected virtual Task OnCommandReceivedAsync(Message command)
+        {
+            return Task.CompletedTask;
+        }
+
+        protected virtual Task OnMessageReceivedAsync(Message message)
+        {
+            return Task.CompletedTask;
+        }
+
+        public virtual Task OnInlineQueryReceivedAsync(InlineQuery inlineQuery)
+        {
+            return Task.CompletedTask;
+        }
+
+        public virtual Task OnCallbackQueryReceivedAsync(CallbackQuery callbackQuery)
+        {
+            return Task.CompletedTask;
         }
 
         public virtual Task OnEditedMessageReceivedAsync(Message message)

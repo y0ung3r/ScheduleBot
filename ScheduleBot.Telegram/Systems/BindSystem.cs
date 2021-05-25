@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
 namespace ScheduleBot.Telegram.Systems
 {
@@ -42,13 +43,13 @@ namespace ScheduleBot.Telegram.Systems
         private bool TryRememberFaculty(BindStage stage, string facultyAbbreviation)
         {
             stage.ChoosedFaculty = _faculties.FirstOrDefault(faculty => faculty.Abbreviation.Equals(facultyAbbreviation));
-            return stage.ChoosedFaculty != null;
+            return stage.ChoosedFaculty is not null;
         }
 
         private bool TryRememberGroup(BindStage stage, string groupTitle)
         {
             stage.ChoosedGroup = _groups.FirstOrDefault(group => group.Title.Equals(groupTitle));
-            return stage.ChoosedGroup != null;
+            return stage.ChoosedGroup is not null;
         }
 
         private async Task AskFacultyAsync(ChatId chatId)
@@ -126,7 +127,9 @@ namespace ScheduleBot.Telegram.Systems
             var chatId = callbackQuery.Message.Chat.Id;
             var stage = _stages.FirstOrDefault(stage => stage.ChatId.Equals(chatId));
 
-            if (stage != null)
+            await Client.SendChatActionAsync(chatId, ChatAction.Typing);
+
+            if (stage is not null)
             {
                 var callbackData = callbackQuery.Data;
 
@@ -135,7 +138,7 @@ namespace ScheduleBot.Telegram.Systems
                     await AskGroupAsync(stage);
                 }
 
-                if (_groups != null && stage.ChoosedGroup is null && TryRememberGroup(stage, callbackData))
+                if (_groups is not null && stage.ChoosedGroup is null && TryRememberGroup(stage, callbackData))
                 {
                     await SaveChoiceAsync(stage);
                 }
@@ -149,7 +152,7 @@ namespace ScheduleBot.Telegram.Systems
             var chatId = command.Chat.Id;
             var stage = _stages.FirstOrDefault(stage => stage.ChatId.Equals(chatId));
 
-            if (stage != null)
+            if (stage is not null)
             {
                 _stages.Remove(stage);
             }
@@ -159,6 +162,7 @@ namespace ScheduleBot.Telegram.Systems
                 new BindStage(chatId)
             );
 
+            await Client.SendChatActionAsync(chatId, ChatAction.Typing);
             await AskFacultyAsync(chatId);
         }
     }
