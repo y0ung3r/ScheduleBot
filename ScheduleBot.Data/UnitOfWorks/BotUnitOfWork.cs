@@ -1,5 +1,6 @@
-﻿using ScheduleBot.Data.Interfaces.Repositories;
-using ScheduleBot.Data.Repositories;
+﻿using ScheduleBot.Data.Repositories;
+using ScheduleBot.Data.Repositories.Interfaces;
+using ScheduleBot.Data.UnitOfWorks.Interfaces;
 
 namespace ScheduleBot.Data.UnitOfWorks
 {

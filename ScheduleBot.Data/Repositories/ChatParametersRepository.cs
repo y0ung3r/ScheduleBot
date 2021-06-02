@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using ScheduleBot.Data.Interfaces.Repositories;
 using ScheduleBot.Data.Models;
+using ScheduleBot.Data.Repositories.Interfaces;
 using System.Threading.Tasks;
 
 namespace ScheduleBot.Data.Repositories

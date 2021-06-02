@@ -3,11 +3,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using ScheduleBot.Data;
-using ScheduleBot.Data.Interfaces.Repositories;
 using ScheduleBot.Data.UnitOfWorks;
+using ScheduleBot.Data.UnitOfWorks.Interfaces;
 using ScheduleBot.Interfaces;
 using ScheduleBot.Parser;
 using ScheduleBot.Parser.Interfaces;
+using ScheduleBot.Telegram.Extensions;
 using System.Configuration;
 
 namespace ScheduleBot.Telegram
@@ -16,6 +17,8 @@ namespace ScheduleBot.Telegram
     {
         public void Configure(IServiceCollection services)
         {
+            services.UseTelegramBotClient();
+
             services.AddLogging(loggingBuilder =>
             {
                 loggingBuilder.ClearProviders();

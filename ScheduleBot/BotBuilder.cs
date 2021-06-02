@@ -8,7 +8,6 @@ namespace ScheduleBot
     public class BotBuilder : IBotBuilder
     {
         private readonly IServiceCollection _services;
-        private IStartup _startup;
 
         public BotBuilder()
         {
@@ -30,8 +29,11 @@ namespace ScheduleBot
         public IBotBuilder WithStartup<TStartup>() 
             where TStartup : IStartup
         {
-            _startup = Activator.CreateInstance<TStartup>();
-            _startup?.Configure(_services);
+            var startup = Activator.CreateInstance<TStartup>();
+    
+            _services.TryAddSingleton<IStartup>(startup);
+
+            startup?.Configure(_services);
 
             return this;
         }
