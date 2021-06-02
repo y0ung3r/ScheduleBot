@@ -1,7 +1,7 @@
 ﻿using ScheduleBot.Data.Models;
 using System.Threading.Tasks;
 
-namespace ScheduleBot.Data.Interfaces
+namespace ScheduleBot.Data.Interfaces.Repositories
 {
     public interface IChatParametersRepository : IEntityFrameworkRepository<ChatParameters>
     {

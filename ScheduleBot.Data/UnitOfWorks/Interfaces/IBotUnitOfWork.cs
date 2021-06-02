@@ -1,4 +1,4 @@
-﻿namespace ScheduleBot.Data.Interfaces
+﻿namespace ScheduleBot.Data.Interfaces.Repositories
 {
     public interface IBotUnitOfWork : IEntityFrameworkUnitOfWork
     {

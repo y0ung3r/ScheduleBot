@@ -1,7 +1,7 @@
 ﻿namespace ScheduleBot.Interfaces
 {
-    public interface IBot
+    public interface IRunnable
     {
-
+        void Run();
     }
 }

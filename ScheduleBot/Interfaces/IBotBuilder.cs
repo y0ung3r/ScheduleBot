@@ -1,16 +1,13 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using System;
-
-namespace ScheduleBot.Interfaces
+﻿namespace ScheduleBot.Interfaces
 {
     public interface IBotBuilder
     {
-        IBotBuilder ConfigureServices(Action<IServiceCollection> configureServices);
+        IBotBuilder Use<TBot>() 
+            where TBot : IBot;
 
-        IBotBuilder SetToken(string token);
+        IBotBuilder WithStartup<TStartup>() 
+            where TStartup : IStartup;
 
-        IBotBuilder UseSystem<TSystem>() where TSystem : ISystem;
-
-        IBot Build();
+        IRunnable Build();
     }
 }
