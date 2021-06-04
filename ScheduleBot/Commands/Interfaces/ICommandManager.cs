@@ -5,8 +5,10 @@ namespace ScheduleBot.Commands.Interfaces
 {
     public interface ICommandManager
     {
-        ICollection<Type> GetReservedCommands();
+        ICollection<Type> GetCommandTypesInAssembly();
 
-        void StartCommand<TCommand>();
+        Type GetCommandType(string commandPattern);
+
+        void ExecuteCommand(string commandPattern);
     }
 }

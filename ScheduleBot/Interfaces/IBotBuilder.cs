@@ -8,6 +8,9 @@
         IBotBuilder WithStartup<TStartup>() 
             where TStartup : IStartup;
 
+        IBotBuilder WithCommand<TCommand>()
+            where TCommand : class;
+
         IRunnable Build();
     }
 }

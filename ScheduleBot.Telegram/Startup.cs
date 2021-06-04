@@ -17,7 +17,7 @@ namespace ScheduleBot.Telegram
     {
         public void Configure(IServiceCollection services)
         {
-            services.UseTelegramBotClient();
+            services.UseTelegramBotClient(ConfigurationManager.AppSettings["token"]);
 
             services.AddLogging(loggingBuilder =>
             {

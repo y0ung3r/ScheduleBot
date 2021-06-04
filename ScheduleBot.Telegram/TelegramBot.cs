@@ -57,6 +57,7 @@ namespace ScheduleBot.Telegram
                 cancellationTokenSource.Token
             );
 
+            Console.WriteLine("Bot is running...");
             Console.ReadKey();
 
             cancellationTokenSource.Cancel();
