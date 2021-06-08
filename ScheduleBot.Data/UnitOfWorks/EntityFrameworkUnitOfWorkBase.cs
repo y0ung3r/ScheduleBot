@@ -4,12 +4,12 @@ using System.Threading.Tasks;
 
 namespace ScheduleBot.Data.UnitOfWorks
 {
-    public class EntityFrameworkUnitOfWork<TContext> : IEntityFrameworkUnitOfWork
+    public abstract class EntityFrameworkUnitOfWorkBase<TContext> : IEntityFrameworkUnitOfWork
         where TContext : DbContext
     {
         protected TContext Context { get; }
 
-        public EntityFrameworkUnitOfWork(TContext context)
+        public EntityFrameworkUnitOfWorkBase(TContext context)
         {
             Context = context;
         }

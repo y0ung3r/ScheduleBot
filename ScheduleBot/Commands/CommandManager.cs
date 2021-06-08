@@ -1,67 +1,42 @@
-﻿using ScheduleBot.Commands.Attributes;
-using ScheduleBot.Commands.Interfaces;
+﻿using ScheduleBot.Commands.Interfaces;
 using ScheduleBot.Extensions;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 
 namespace ScheduleBot.Commands
 {
     public class CommandManager : ICommandManager
     {
-        private readonly IServiceProvider _serviceProvider;
-        private object _executedCommand;
+        private readonly ICollection<IBotCommand> _commands;
 
-        public CommandManager(IServiceProvider serviceProvider)
+        public CommandManager()
         {
-            _serviceProvider = serviceProvider;
+            _commands = new List<IBotCommand>();
         }
 
-        internal void InvokeCommandInitializer(object command, params object[] parameters)
+        public void RegisterCommand(IBotCommand command)
         {
-            var initializerMethod = command.GetType()
-                                           .GetMethods()
-                                           .FirstOrDefault
-                                           (
-                                               method => method.GetCustomAttribute<CommandInitializerAttribute>() != null
-                                           );
-
-            if (initializerMethod != null)
-            {
-                var services = initializerMethod.GetParameters()
-                                                .Select
-                                                (
-                                                    parameterInfo => _serviceProvider.GetService(parameterInfo.ParameterType)
-                                                )
-                                                .ToArray();
-
-                initializerMethod.Invoke(command, parameters);
-            }
+            _commands.Add(command);
         }
 
-        public ICollection<Type> GetCommandTypesInAssembly()
+        public void UnregisterCommand(IBotCommand command)
         {
-            return Assembly.GetExecutingAssembly()
-                           .GetTypes()
-                           .Where
-                           (
-                               type => type.IsCommand()
-                           )
-                           .ToList();
+            _commands.Remove(command);
         }
 
-        public Type GetCommandType(string commandPattern)
+        public IBotCommand FindCommand(string route)
         {
-            return GetCommandTypesInAssembly().FirstOrDefault(type => type.MessageIsCommand(commandPattern));
+            return _commands.FirstOrDefault
+            (
+                command => command.ContainsRoute(route)
+            );
         }
 
-        public void ExecuteCommand(string commandPattern)
+        public bool TryFindCommand(string route, out IBotCommand command)
         {
-            var commandType = GetCommandType(commandPattern);
-            _executedCommand = _serviceProvider.GetService(commandType) ?? Activator.CreateInstance(commandType);
+            command = FindCommand(route);
 
-            InvokeCommandInitializer(_executedCommand);
+            return command != null;
         }
     }
 }

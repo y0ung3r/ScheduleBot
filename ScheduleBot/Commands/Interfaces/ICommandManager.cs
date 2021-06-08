@@ -1,14 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace ScheduleBot.Commands.Interfaces
+﻿namespace ScheduleBot.Commands.Interfaces
 {
     public interface ICommandManager
     {
-        ICollection<Type> GetCommandTypesInAssembly();
+        void RegisterCommand(IBotCommand command);
 
-        Type GetCommandType(string commandPattern);
+        void UnregisterCommand(IBotCommand command);
 
-        void ExecuteCommand(string commandPattern);
+        IBotCommand FindCommand(string route);
+
+        bool TryFindCommand(string route, out IBotCommand command);
     }
 }

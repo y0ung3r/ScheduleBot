@@ -4,7 +4,7 @@ using ScheduleBot.Data.UnitOfWorks.Interfaces;
 
 namespace ScheduleBot.Data.UnitOfWorks
 {
-    public class BotUnitOfWork : EntityFrameworkUnitOfWork<BotContext>, IBotUnitOfWork
+    public class BotUnitOfWork : EntityFrameworkUnitOfWorkBase<BotContext>, IBotUnitOfWork
     {
         public IChatParametersRepository ChatParameters { get; } 
 

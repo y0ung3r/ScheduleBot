@@ -4,14 +4,14 @@ using System.Threading.Tasks;
 
 namespace ScheduleBot.Data.Repositories
 {
-    public class EntityFrameworkRepository<TContext, TModel> : IEntityFrameworkRepository<TModel>
+    public abstract class EntityFrameworkRepositoryBase<TContext, TModel> : IEntityFrameworkRepository<TModel>
         where TContext : DbContext
         where TModel : class
     {
         protected TContext Context { get; }
         protected DbSet<TModel> Models => Context.Set<TModel>();
 
-        public EntityFrameworkRepository(TContext context)
+        public EntityFrameworkRepositoryBase(TContext context)
         {
             Context = context;
         }

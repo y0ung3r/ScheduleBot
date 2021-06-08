@@ -1,12 +1,9 @@
-﻿using System;
-using System.Threading.Tasks;
-
-namespace ScheduleBot.Interfaces
+﻿namespace ScheduleBot.Interfaces
 {
     public interface IBot
     {
-        Task OnUpdateReceivedAsync(object update);
+        void Start();
 
-        Task OnErrorReceivedAsync(Exception exception);
+        void Stop();
     }
 }

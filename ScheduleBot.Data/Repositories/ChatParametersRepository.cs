@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace ScheduleBot.Data.Repositories
 {
-    public class ChatParametersRepository : EntityFrameworkRepository<BotContext, ChatParameters>, IChatParametersRepository
+    public class ChatParametersRepository : EntityFrameworkRepositoryBase<BotContext, ChatParameters>, IChatParametersRepository
     {
         public ChatParametersRepository(BotContext context)
             : base(context)
