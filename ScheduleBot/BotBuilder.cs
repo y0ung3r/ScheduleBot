@@ -69,13 +69,13 @@ namespace ScheduleBot
         {
             var serviceProvider = _services.BuildServiceProvider();
 
-            foreach (var commandType in _commandTypes)
-            {
-                _commandManager.RegisterCommand
-                (
-                    (IBotCommand)serviceProvider.GetRequiredService(commandType)
-                );
-            }
+            //foreach (var commandType in _commandTypes)
+            //{
+            //    _commandManager.RegisterCommand
+            //    (
+            //        (IBotCommand)serviceProvider.GetRequiredService(commandType)
+            //    );
+            //}
 
             return serviceProvider.GetRequiredService<IBot>();
         }

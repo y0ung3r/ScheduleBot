@@ -1,6 +1,5 @@
 ﻿using ScheduleBot.Commands.Interfaces;
 using ScheduleBot.Interfaces;
-using ScheduleBot.States;
 using ScheduleBot.States.Interfaces;
 using System;
 using System.Threading;
@@ -75,10 +74,7 @@ namespace ScheduleBot.Telegram
 
         public void Stop()
         {
-            if (_cancellationTokenSource.Token.CanBeCanceled)
-            {
-                _cancellationTokenSource.Cancel();
-            }
+            _cancellationTokenSource.Cancel();
         }
     }
 }
