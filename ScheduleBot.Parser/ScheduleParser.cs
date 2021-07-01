@@ -1,5 +1,4 @@
-﻿using ScheduleBot.Extensions;
-using ScheduleBot.Parser.Extensions;
+﻿using ScheduleBot.Parser.Extensions;
 using ScheduleBot.Parser.Interfaces;
 using ScheduleBot.Parser.Models;
 using System;
@@ -108,7 +107,7 @@ namespace ScheduleBot.Parser
 
             var studyDays = new List<StudyDay>();
 
-            for (var dateTime = startDateTime; dateTime < endDateTime; dateTime = dateTime.AddDays(value: 1))
+            for (var dateTime = startDateTime; dateTime <= endDateTime; dateTime = dateTime.AddDays(value: 1))
             {
                 if (!dateTime.DayOfWeek.Equals(DayOfWeek.Sunday))
                 {

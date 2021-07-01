@@ -1,4 +1,4 @@
-﻿using ScheduleBot.Extensions;
+﻿using ScheduleBot.Parser.Extensions;
 using System.Linq;
 using System.Text;
 

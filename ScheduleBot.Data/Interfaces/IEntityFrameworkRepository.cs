@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace ScheduleBot.Data.Repositories.Interfaces
+namespace ScheduleBot.Data.Interfaces
 {
     public interface IEntityFrameworkRepository<TModel>
         where TModel : class

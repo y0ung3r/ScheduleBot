@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace ScheduleBot.Data.UnitOfWorks.Interfaces
+namespace ScheduleBot.Data.Interfaces
 {
     public interface IEntityFrameworkUnitOfWork
     {

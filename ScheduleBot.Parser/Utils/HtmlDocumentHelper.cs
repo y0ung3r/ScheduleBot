@@ -7,7 +7,9 @@ namespace ScheduleBot.Parser.Utils
         public static HtmlDocument CreateNew(string html)
         {
             var htmlDocument = new HtmlDocument();
+
             htmlDocument.LoadHtml(html);
+
             return htmlDocument;
         }
     }
