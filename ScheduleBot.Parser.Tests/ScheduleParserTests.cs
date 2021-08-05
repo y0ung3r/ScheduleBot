@@ -17,9 +17,9 @@ namespace ScheduleBot.Parser.Tests
         }
 
         [Test]
-        [TestCase("Колледж")]
-        [TestCase("Исторический факультет")]
-        [TestCase("Факультет математики и информационных технологий")]
+        [TestCase("РљРѕР»Р»РµРґР¶")]
+        [TestCase("РСЃС‚РѕСЂРёС‡РµСЃРєРёР№ С„Р°РєСѓР»СЊС‚РµС‚")]
+        [TestCase("Р¤Р°РєСѓР»СЊС‚РµС‚ РјР°С‚РµРјР°С‚РёРєРё Рё РёРЅС„РѕСЂРјР°С†РёРѕРЅРЅС‹С… С‚РµС…РЅРѕР»РѕРіРёР№")]
         public async Task FacultiesParsingTestAsync(string facultyTitle)
         {
             var faculties = await _scheduleParser.ParseFacultiesAsync();
@@ -29,9 +29,9 @@ namespace ScheduleBot.Parser.Tests
         }
 
         [Test]
-        [TestCase(4, "Филологический факультет")]
-        [TestCase(5, "Факультет башкирской и тюркской филологии")]
-        [TestCase(6, "Исторический факультет")]
+        [TestCase(4, "Р¤РёР»РѕР»РѕРіРёС‡РµСЃРєРёР№ С„Р°РєСѓР»СЊС‚РµС‚")]
+        [TestCase(5, "Р¤Р°РєСѓР»СЊС‚РµС‚ Р±Р°С€РєРёСЂСЃРєРѕР№ Рё С‚СЋСЂРєСЃРєРѕР№ С„РёР»РѕР»РѕРіРёРё")]
+        [TestCase(6, "РСЃС‚РѕСЂРёС‡РµСЃРєРёР№ С„Р°РєСѓР»СЊС‚РµС‚")]
         public async Task FacultyParsingTestAsync(int facultyId, string facultyTitle)
         {
             var faculty = await _scheduleParser.ParseFacultyAsync(facultyId);
@@ -40,9 +40,9 @@ namespace ScheduleBot.Parser.Tests
         }
 
         [Test]
-        [TestCase(7, "ПМИ21")]
-        [TestCase(8, "ХИМ11")]
-        [TestCase(9, "НДО31")]
+        [TestCase(7, "РџРњР21")]
+        [TestCase(8, "РҐРРњ11")]
+        [TestCase(9, "РќР”Рћ31")]
         public async Task GroupsParsingTestAsync(int facultyId, string groupTitle)
         {
             var groups = await _scheduleParser.ParseGroupsAsync(facultyId);
@@ -52,9 +52,9 @@ namespace ScheduleBot.Parser.Tests
         }
 
         [Test]
-        [TestCase(8, 19, 2, "ХИМ11")]
-        [TestCase(7, 13, 2, "ПМИ21")]
-        [TestCase(10, 9227, 2, "ЭБ21")]
+        [TestCase(8, 19, 2, "РҐРРњ11")]
+        [TestCase(7, 13, 2, "РџРњР21")]
+        [TestCase(10, 9227, 2, "Р­Р‘21")]
         public async Task GroupParsingTestAsync(int facultyId, int groupId, int groupTypeId, string groupTitle)
         {
             var group = await _scheduleParser.ParseGroupAsync(facultyId, groupId, groupTypeId);
@@ -63,9 +63,9 @@ namespace ScheduleBot.Parser.Tests
         }
 
         [Test]
-        [TestCase(8, 19, 2, "2021-6-2", "Строение вещества", "2021-6-7", "День самостоятельной работы", "2021-6-5")]
-        [TestCase(8, 19, 2, "2021-5-31", "Строение вещества", "2021-6-5", "История России", "2021-6-4")]
-        [TestCase(8, 19, 2, "2021-6-1", "Аналитическая химия", "2021-6-3", "Строение вещества", "2021-6-2")]
+        [TestCase(8, 19, 2, "2021-6-2", "РЎС‚СЂРѕРµРЅРёРµ РІРµС‰РµСЃС‚РІР°", "2021-6-7", "Р”РµРЅСЊ СЃР°РјРѕСЃС‚РѕСЏС‚РµР»СЊРЅРѕР№ СЂР°Р±РѕС‚С‹", "2021-6-5")]
+        [TestCase(8, 19, 2, "2021-5-31", "РЎС‚СЂРѕРµРЅРёРµ РІРµС‰РµСЃС‚РІР°", "2021-6-5", "РСЃС‚РѕСЂРёСЏ Р РѕСЃСЃРёРё", "2021-6-4")]
+        [TestCase(8, 19, 2, "2021-6-1", "РђРЅР°Р»РёС‚РёС‡РµСЃРєР°СЏ С…РёРјРёСЏ", "2021-6-3", "РЎС‚СЂРѕРµРЅРёРµ РІРµС‰РµСЃС‚РІР°", "2021-6-2")]
         public async Task StudyDaysParsingTestAsync(int facultyId, int groupId, int groupTypeId, 
             DateTime startDateTime, string startLessonTitle, DateTime endDateTime, 
             string penultimateLessonTitle, DateTime penultimateDateTime)
@@ -86,10 +86,10 @@ namespace ScheduleBot.Parser.Tests
         }
 
         [Test]
-        [TestCase(8, 19, 2, "2021-6-2", "Строение вещества", "Пр")]
-        [TestCase(8, 19, 2, "2021-5-31", "Строение вещества", "Пр")]
-        [TestCase(8, 19, 2, "2021-6-1", "Аналитическая химия", "Лаб")]
-        [TestCase(7, 13, 2, "2021-6-22", "Иностранный язык", "Экзамен")]
+        [TestCase(8, 19, 2, "2021-6-2", "РЎС‚СЂРѕРµРЅРёРµ РІРµС‰РµСЃС‚РІР°", "РџСЂ")]
+        [TestCase(8, 19, 2, "2021-5-31", "РЎС‚СЂРѕРµРЅРёРµ РІРµС‰РµСЃС‚РІР°", "РџСЂ")]
+        [TestCase(8, 19, 2, "2021-6-1", "РђРЅР°Р»РёС‚РёС‡РµСЃРєР°СЏ С…РёРјРёСЏ", "Р›Р°Р±")]
+        [TestCase(7, 13, 2, "2021-6-22", "РРЅРѕСЃС‚СЂР°РЅРЅС‹Р№ СЏР·С‹Рє", "Р­РєР·Р°РјРµРЅ")]
         public async Task StudyDayParsingTestAsync(int facultyId, int groupId, int groupTypeId, 
             DateTime dateTime, string lessonTitle, string lessonType)
         {
