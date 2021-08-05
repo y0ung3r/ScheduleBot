@@ -1,4 +1,6 @@
 # ScheduleBot
+![Build Status](https://github.com/y0ung3r/ScheduleBot/actions/workflows/dotnet-desktop.yml/badge.svg?branch=master)
+
 Бот, предназначенный для получения актуального расписания СФ БашГУ (http://edu.strbsu.ru/)
 
 ### Использованные библиотеки
