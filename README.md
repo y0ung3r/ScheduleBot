@@ -1,4 +1,4 @@
-<p align="center">[![](https://travis-ci.org/laravel/framework.svg?branch=8.x)](https://travis-ci.com/github/y0ung3r/ScheduleBot/)</p>
+<p align="center"><a href="https://travis-ci.com/github/y0ung3r/ScheduleBot"><img src="https://travis-ci.com/y0ung3r/ScheduleBot.svg?branch=master" alt="Build Status"></a></p>
 
 ## О боте
 Бот на основе Telegram Bot API, предназначенный для получения актуального расписания СФ БашГУ (http://edu.strbsu.ru/)
