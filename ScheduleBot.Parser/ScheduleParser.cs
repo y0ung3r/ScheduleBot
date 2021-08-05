@@ -18,6 +18,11 @@ namespace ScheduleBot.Parser
             _httpClient = new HttpClient();
         }
 
+        public ScheduleParser(HttpClient httpClient)
+        {
+            _httpClient = httpClient;
+        }
+
         public async Task<ICollection<Faculty>> ParseFacultiesAsync()
         {
             var page = await _httpClient.CreateHtmlDocumentAsync
@@ -125,7 +130,7 @@ namespace ScheduleBot.Parser
         {
             if (dateTime.DayOfWeek.Equals(DayOfWeek.Sunday))
             {
-                throw new ArgumentException($"The \"{nameof(dateTime)}\" cannot be sunday");
+                throw new ArgumentException($"The \"{nameof(dateTime)}\" cannot be Sunday");
             }
 
             var studyDay = new StudyDay()

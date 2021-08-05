@@ -8,7 +8,13 @@ namespace ScheduleBot.Parser.Tests
 {
     public class ScheduleParserTests
     {
-        private IScheduleParser _scheduleParser = new ScheduleParser();
+        private IScheduleParser _scheduleParser;
+
+        [OneTimeSetUp]
+        public void Setup()
+        {
+            _scheduleParser = new ScheduleParser();
+        }
 
         [Test]
         [TestCase("Колледж")]
@@ -71,24 +77,29 @@ namespace ScheduleBot.Parser.Tests
             var penultimateStudyDay = studyDays.SkipLast(count: 1).LastOrDefault();
             var penultimateLesson = penultimateStudyDay.Lessons.FirstOrDefault();
 
+            Assert.IsNotNull(startLesson);
+            Assert.IsNotNull(penultimateLesson);
             Assert.AreEqual(startStudyDay.Date, startDateTime);
             Assert.AreEqual(penultimateStudyDay.Date, penultimateDateTime);
-
             Assert.AreEqual(startLesson.Title, startLessonTitle);
             Assert.AreEqual(penultimateLesson.Title, penultimateLessonTitle);
         }
 
         [Test]
-        [TestCase(8, 19, 2, "2021-6-2", "Строение вещества")]
-        [TestCase(8, 19, 2, "2021-5-31", "Строение вещества")]
-        [TestCase(8, 19, 2, "2021-6-1", "Аналитическая химия")]
-        public async Task StudyDayParsingTestAsync(int facultyId, int groupId, int groupTypeId, DateTime dateTime, string lessonTitle)
+        [TestCase(8, 19, 2, "2021-6-2", "Строение вещества", "Пр")]
+        [TestCase(8, 19, 2, "2021-5-31", "Строение вещества", "Пр")]
+        [TestCase(8, 19, 2, "2021-6-1", "Аналитическая химия", "Лаб")]
+        [TestCase(7, 13, 2, "2021-6-22", "Иностранный язык", "Экзамен")]
+        public async Task StudyDayParsingTestAsync(int facultyId, int groupId, int groupTypeId, 
+            DateTime dateTime, string lessonTitle, string lessonType)
         {
             var group = await _scheduleParser.ParseGroupAsync(facultyId, groupId, groupTypeId);
             var studyDay = await _scheduleParser.ParseStudyDayAsync(group, dateTime);
-            var lesson = studyDay.Lessons.FirstOrDefault();
+            var studyDayLesson = studyDay.Lessons.FirstOrDefault(lesson => lesson.Title.Equals(lessonTitle));
 
-            Assert.AreEqual(lesson.Title, lessonTitle);
+            Assert.IsNotNull(studyDayLesson);
+            Assert.AreEqual(studyDayLesson.Title, lessonTitle);
+            Assert.AreEqual(studyDayLesson.Type, lessonType);
         }
     }
 }

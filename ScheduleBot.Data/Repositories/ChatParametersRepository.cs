@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ScheduleBot.Data.Models;
-using ScheduleBot.Data.Interfaces;
+using ScheduleBot.Data.Repositories.Interfaces;
 using System.Threading.Tasks;
 
 namespace ScheduleBot.Data.Repositories
@@ -11,7 +11,7 @@ namespace ScheduleBot.Data.Repositories
             : base(context)
         { }
 
-        public async Task<ChatParameters> FindChatParameters(long chatId)
+        public async Task<ChatParameters> FindChatParametersAsync(long chatId)
         {
             return await Models.FirstOrDefaultAsync(userSchedule => userSchedule.ChatId.Equals(chatId));
         } 
