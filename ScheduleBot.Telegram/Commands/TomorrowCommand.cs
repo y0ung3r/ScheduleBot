@@ -2,6 +2,7 @@
 using ScheduleBot.Attributes;
 using ScheduleBot.Domain.Interfaces;
 using ScheduleBot.Parser.Interfaces;
+using ScheduleBot.Telegram.Extensions;
 using ScheduleBot.Telegram.LongPolling.Interfaces;
 using System;
 using System.Text;
@@ -50,43 +51,8 @@ namespace ScheduleBot.Telegram.Commands
             {
                 var group = await _scheduleParser.ParseGroupAsync(chatParameters.FacultyId, chatParameters.GroupId, chatParameters.GroupTypeId);
                 var studyDay = await _scheduleParser.ParseStudyDayAsync(group, nextDate);
-
-                stringBuilder.AppendLine($"<b>Расписание на {nextDate.ToShortDateString()}:</b>")
-                             .AppendLine();
-
-                if (studyDay.Lessons.Count > 0)
-                {
-                    foreach (var lesson in studyDay.Lessons)
-                    {
-                        stringBuilder.AppendLine($"<b>{lesson.Number} {lesson.Title}</b>");
-
-                        if (!string.IsNullOrWhiteSpace(lesson.Type))
-                        {
-                            stringBuilder.Append($"<i>{lesson.Type}</i>");
-
-                            if (!string.IsNullOrWhiteSpace(lesson.ClassroomNumber))
-                            {
-                                stringBuilder.Append($" <i>{lesson.ClassroomNumber}</i>");
-                            }
-
-                            stringBuilder.Append($" в {lesson.TimeRange}");
-                        }
-
-                        stringBuilder.AppendLine();
-
-                        if (lesson.Teachers.Count > 0)
-                        {
-                            stringBuilder.AppendJoin(", ", lesson.Teachers);
-                        }
-
-                        stringBuilder.AppendLine()
-                                     .AppendLine();
-                    }
-                }
-                else
-                {
-                    stringBuilder.AppendLine("Пары отсутствуют");
-                }
+                var html = studyDay.ToHTML();
+                stringBuilder.AppendLine(html);
             }
             else
             {

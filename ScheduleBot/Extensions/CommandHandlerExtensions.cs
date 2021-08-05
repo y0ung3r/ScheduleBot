@@ -31,7 +31,7 @@ namespace ScheduleBot.Extensions
             return attribute is not null;
         }
 
-        public static bool IsCommandTextEquals(this ICommandHandler commandHandler, string message)
+        public static bool IsCommandTextContains(this ICommandHandler commandHandler, string message)
         {
             if (commandHandler.TryGetCommandAttribute(out var attribute))
             {
@@ -42,8 +42,8 @@ namespace ScheduleBot.Extensions
                 )
                 .Any
                 (
-                    pattern => pattern.Trim()
-                                      .Equals(message)
+                    pattern => message.Trim()
+                                      .Contains(pattern)
                 );
             }
 

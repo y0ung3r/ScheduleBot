@@ -43,7 +43,7 @@ namespace ScheduleBot.Telegram.Commands
         {
             return request is Update update && 
                    update.IsCommand() && 
-                   this.IsCommandTextEquals(update.Message.Text) && 
+                   this.IsCommandTextContains(update.Message.Text) && 
                    CanHandle(update.Message);
         }
 
