@@ -168,13 +168,16 @@ namespace ScheduleBot.Parser
                               .SelectNodes(".//*[contains(@class, 'day')]")
                               .FirstOrDefault(node =>
                               {
-                                  var dateFromSchedule = DateTime.Parse
+                                  var dateFromSchedule = DateTime.ParseExact
                                   (
                                       node.SelectNodes(".//*[contains(@class, 'date student')]")
                                           .FirstOrDefault()
                                           .InnerText
                                           .Split(" ")
-                                          .Last()
+                                          .Last(),
+
+                                      format: "dd/MM/yyyy",
+                                      provider: default
                                   );
 
                                   return dateFromSchedule.Date.CompareTo(dateTime.Date).Equals(0);
