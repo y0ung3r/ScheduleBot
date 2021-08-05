@@ -67,9 +67,12 @@ namespace ScheduleBot.Parser.Tests
         [TestCase(8, 19, 2, "2021-5-31", "Строение вещества", "2021-6-5", "История России", "2021-6-4")]
         [TestCase(8, 19, 2, "2021-6-1", "Аналитическая химия", "2021-6-3", "Строение вещества", "2021-6-2")]
         public async Task StudyDaysParsingTestAsync(int facultyId, int groupId, int groupTypeId, 
-            DateTime startDateTime, string startLessonTitle, DateTime endDateTime, 
-            string penultimateLessonTitle, DateTime penultimateDateTime)
+            string startDate, string startLessonTitle, string endDate, 
+            string penultimateLessonTitle, string penultimateDate)
         {
+            var startDateTime = DateTime.Parse(startDate);
+            var endDateTime = DateTime.Parse(endDate);
+            var penultimateDateTime = DateTime.Parse(penultimateDate);
             var group = await _scheduleParser.ParseGroupAsync(facultyId, groupId, groupTypeId);
             var studyDays = await _scheduleParser.ParseStudyDaysAsync(group, startDateTime, endDateTime);
             var startStudyDay = studyDays.FirstOrDefault();
@@ -91,8 +94,9 @@ namespace ScheduleBot.Parser.Tests
         [TestCase(8, 19, 2, "2021-6-1", "Аналитическая химия", "Лаб")]
         [TestCase(7, 13, 2, "2021-6-22", "Иностранный язык", "Экзамен")]
         public async Task StudyDayParsingTestAsync(int facultyId, int groupId, int groupTypeId, 
-            DateTime dateTime, string lessonTitle, string lessonType)
+            string date, string lessonTitle, string lessonType)
         {
+            var dateTime = DateTime.Parse(date);
             var group = await _scheduleParser.ParseGroupAsync(facultyId, groupId, groupTypeId);
             var studyDay = await _scheduleParser.ParseStudyDayAsync(group, dateTime);
             var studyDayLesson = studyDay.Lessons.FirstOrDefault(lesson => lesson.Title.Equals(lessonTitle));
