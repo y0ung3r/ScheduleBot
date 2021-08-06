@@ -7,10 +7,19 @@ namespace ScheduleBot.Extensions
 {
     public static class BranchBuilderExtensions
     {
-        public static IBranchBuilder UseInternalHandler<TRequestHandler>(this IBranchBuilder builder, Predicate<object> predicate)
+        public static IBranchBuilder UseHandler<TRequestHandler>(this IBranchBuilder builder)
             where TRequestHandler : IRequestHandler
         {
-            return builder.UseInternalHandler
+            return builder.UseHandler
+            (
+                builder.ServiceProvider.GetRequiredService<TRequestHandler>()
+            );
+        }
+
+        public static IBranchBuilder UseBranch<TRequestHandler>(this IBranchBuilder builder, Predicate<object> predicate)
+            where TRequestHandler : IRequestHandler
+        {
+            return builder.UseBranch
             (
                 predicate,
                 branchBuilder => branchBuilder.UseHandler<TRequestHandler>()
@@ -20,13 +29,11 @@ namespace ScheduleBot.Extensions
         public static IBranchBuilder UseCommand<TCommandHandler>(this IBranchBuilder builder)
             where TCommandHandler : ICommandHandler
         {
-            return builder.UseInternalHandler
+            return builder.UseBranch<TCommandHandler>
             (
                 request => builder.ServiceProvider
                                   .GetRequiredService<TCommandHandler>()
-                                  .CanHandle(request),
-
-                branchBuilder => branchBuilder.UseHandler<TCommandHandler>()
+                                  .CanHandle(request)
             );
         }
     }

@@ -4,6 +4,7 @@ using ScheduleBot.Domain.Interfaces;
 using ScheduleBot.Parser.Interfaces;
 using ScheduleBot.Telegram.Extensions;
 using ScheduleBot.Telegram.LongPolling.Interfaces;
+using ScheduleBot.Telegram.ReplyService.Interfaces;
 using System.Linq;
 using System.Threading.Tasks;
 using Telegram.Bot;
@@ -19,16 +20,16 @@ namespace ScheduleBot.Telegram.Commands
         private readonly ITelegramBotClient _client;
         private readonly IScheduleParser _scheduleParser;
         private readonly IChatParametersService _chatParametersService;
-        private readonly ILongPollingService _longPollingService;
+        private readonly IReplyMessageService _replyMessageService;
 
         public BindCommand(ILogger<BindCommand> logger, ITelegramBotClient client, IScheduleParser scheduleParser,
-            IChatParametersService chatParametersService, ILongPollingService longPollingService)
+            IChatParametersService chatParametersService, IReplyMessageService replyMessageService)
         {
             _logger = logger;
             _client = client;
             _scheduleParser = scheduleParser;
             _chatParametersService = chatParametersService;
-            _longPollingService = longPollingService;
+            _replyMessageService = replyMessageService;
         }
 
         protected override async Task HandleAsync(Message message, string[] arguments, RequestDelegate nextHandler)
@@ -48,27 +49,25 @@ namespace ScheduleBot.Telegram.Commands
                 chatAction: ChatAction.Typing
             );
 
-            var messageToDelete = await _client.SendTextMessageAsync
+            var requestMessage = await _client.SendTextMessageAsync
             (
                 chatId,
                 text: "Выберите факультет, к которому Вас нужно прикрепить:",
                 replyMarkup: inlineKeyboard
             );
 
-            _longPollingService.RegisterStepHandler
+            _replyMessageService.RegisterRequest
             (
-                chatId,
-                HandleIncomingFacultyAsync,
-                messageToDelete
+                requestMessage, 
+                HandleIncomingFacultyAsync
             );
 
             _logger?.LogInformation("Bind command processed");
         }
 
-        private async Task HandleIncomingFacultyAsync(Update update, params object[] payload)
+        private async Task HandleIncomingFacultyAsync(Message request, Update response, params object[] payload)
         {
-            var payloadMessage = (Message)payload.First();
-            var callbackQuery = update.CallbackQuery;
+            var callbackQuery = response.CallbackQuery;
 
             if (callbackQuery is not null)
             {
@@ -97,22 +96,20 @@ namespace ScheduleBot.Telegram.Commands
                     await _client.DeleteMessageAsync
                     (
                         chatId,
-                        messageId: payloadMessage.MessageId
+                        messageId: callbackQuery.Message.MessageId
                     );
 
-                    var messageToDelete = await _client.SendTextMessageAsync
+                    var requestMessage = await _client.SendTextMessageAsync
                     (
                         chatId,
                         text: "Теперь выберите группу:",
                         replyMarkup: inlineKeyboard
                     );
 
-                    _longPollingService.RegisterStepHandler
+                    _replyMessageService.RegisterRequest
                     (
-                        chatId,
-                        HandleIncomingGroupAsync,
-                        messageToDelete,
-                        faculty.Id
+                        requestMessage,
+                        HandleIncomingGroupAsync
                     );
                 }
 
@@ -120,12 +117,11 @@ namespace ScheduleBot.Telegram.Commands
             }
         }
 
-        private async Task HandleIncomingGroupAsync(Update update, params object[] payload)
+        private async Task HandleIncomingGroupAsync(Message request, Update response, params object[] payload)
         {
-            var payloadMessage = (Message)payload.First();
-            var facultyId = (int)payload.Last();
+            var facultyId = (int)payload.First();
 
-            var callbackQuery = update.CallbackQuery;
+            var callbackQuery = response.CallbackQuery;
 
             if (callbackQuery is not null)
             {
@@ -154,7 +150,7 @@ namespace ScheduleBot.Telegram.Commands
                     await _client.DeleteMessageAsync
                     (
                         chatId,
-                        messageId: payloadMessage.MessageId
+                        messageId: callbackQuery.Message.MessageId
                     );
 
                     await _client.SendTextMessageAsync

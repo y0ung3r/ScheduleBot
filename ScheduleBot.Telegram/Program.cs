@@ -37,7 +37,7 @@ namespace ScheduleBot.Telegram
                     .AddDomainServices()
                     .AddScheduleParser<ScheduleParser>()
                     .AddTelegramBotClient(BotConfiguration.ApiToken)
-                    .AddTelegramLongPolling()
+                    .AddTelegramBotExtensions()
                     .AddBot<TelegramScheduleBot>()
                     .AddHandler<TelegramExceptionHandler>()
                     .AddHandler<StartCommand>()
@@ -45,8 +45,7 @@ namespace ScheduleBot.Telegram
                     .AddHandler<BindCommand>()
                     .AddHandler<ScheduleCommand>()
                     .AddHandler<TomorrowCommand>()
-                    .AddHandler<UnknownMessageHandler>()
-                    .AddHandler<UnknownCallbackQueryHandler>();
+                    .AddHandler<MissingUpdateHandler>();
 
             var serviceProvider = services.BuildServiceProvider();
             var application = serviceProvider.GetRequiredService<Application>();

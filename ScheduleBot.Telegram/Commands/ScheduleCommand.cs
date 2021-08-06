@@ -4,7 +4,7 @@ using ScheduleBot.Domain.Extensions;
 using ScheduleBot.Domain.Interfaces;
 using ScheduleBot.Parser.Interfaces;
 using ScheduleBot.Telegram.Extensions;
-using ScheduleBot.Telegram.LongPolling.Interfaces;
+using ScheduleBot.Telegram.ReplyService.Interfaces;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -21,17 +21,17 @@ namespace ScheduleBot.Telegram.Commands
         private readonly ITelegramBotClient _client;
         private readonly IScheduleParser _scheduleParser;
         private readonly IChatParametersService _chatParametersService;
-        private readonly ILongPollingService _longPollingService;
+        private readonly IReplyMessageService _replyMessageService;
         private readonly IWeekDatesProvider _weekDatesProvider;
 
         public ScheduleCommand(ILogger<ScheduleCommand> logger, ITelegramBotClient client, IScheduleParser scheduleParser,
-            IChatParametersService chatParametersService, ILongPollingService longPollingService, IWeekDatesProvider weekDatesProvider)
+            IChatParametersService chatParametersService, IReplyMessageService replyMessageService, IWeekDatesProvider weekDatesProvider)
         {
             _logger = logger;
             _client = client;
             _scheduleParser = scheduleParser;
             _chatParametersService = chatParametersService;
-            _longPollingService = longPollingService;
+            _replyMessageService = replyMessageService;
             _weekDatesProvider = weekDatesProvider;
         }
 
@@ -45,27 +45,25 @@ namespace ScheduleBot.Telegram.Commands
                 chatAction: ChatAction.Typing
             );
 
-            var messageToDelete = await _client.SendTextMessageAsync
+            var requestMessage = await _client.SendTextMessageAsync
             (
                 chatId,
                 text: "Выберите учебную неделю:",
                 replyMarkup: DateTime.Today.ToWeekDatesKeyboard(_weekDatesProvider)
             );
 
-            _longPollingService.RegisterStepHandler
+            _replyMessageService.RegisterRequest
             (
-                chatId,
-                HandleIncomingWeekAsync,
-                messageToDelete
+                requestMessage,
+                HandleIncomingWeekAsync
             );
 
             _logger?.LogInformation("Schedule command processed");
         }
 
-        private async Task HandleIncomingWeekAsync(Update update, params object[] payload)
+        private async Task HandleIncomingWeekAsync(Message request, Update response, params object[] payload)
         {
-            var payloadMessage = (Message)payload.First();
-            var callbackQuery = update.CallbackQuery;
+            var callbackQuery = response.CallbackQuery;
 
             if (callbackQuery is not null)
             {
@@ -91,31 +89,29 @@ namespace ScheduleBot.Telegram.Commands
                 await _client.DeleteMessageAsync
                 (
                     chatId,
-                    messageId: payloadMessage.MessageId
+                    messageId: request.MessageId
                 );
 
-                var messageToDelete = await _client.SendTextMessageAsync
+                var requestMessage = await _client.SendTextMessageAsync
                 (
                     chatId,
                     text: "Выберите дату:",
                     replyMarkup: inlineKeyboard
                 );
 
-                _longPollingService.RegisterStepHandler
+                _replyMessageService.RegisterRequest
                 (
-                    chatId,
-                    HandleIncomingDateAsync,
-                    messageToDelete
+                    requestMessage,
+                    HandleIncomingDateAsync
                 );
 
                 await _client.AnswerCallbackQueryAsync(callbackQuery.Id);
             }
         }
 
-        private async Task HandleIncomingDateAsync(Update update, params object[] payload)
+        private async Task HandleIncomingDateAsync(Message request, Update response, params object[] payload)
         {
-            var payloadMessage = (Message)payload.First();
-            var callbackQuery = update.CallbackQuery;
+            var callbackQuery = response.CallbackQuery;
 
             if (callbackQuery is not null)
             {
@@ -134,7 +130,7 @@ namespace ScheduleBot.Telegram.Commands
                     await _client.DeleteMessageAsync
                     (
                         chatId,
-                        messageId: payloadMessage.MessageId
+                        messageId: request.MessageId
                     );
 
                     if (chatParameters is not null)
@@ -143,7 +139,7 @@ namespace ScheduleBot.Telegram.Commands
                         var studyDay = await _scheduleParser.ParseStudyDayAsync(group, dateTime);
                         var html = studyDay.ToHTML();
 
-                        var essageToDelete = await _client.SendTextMessageAsync
+                        var requestMessage = await _client.SendTextMessageAsync
                         (
                             chatId,
                             text: html,
@@ -151,11 +147,10 @@ namespace ScheduleBot.Telegram.Commands
                             replyMarkup: dateTime.ToNavigationKeyboard()
                         );
 
-                        _longPollingService.RegisterStepHandler
+                        _replyMessageService.RegisterRequest
                         (
-                            chatId,
-                            HandleIncomingDateAsync,
-                            essageToDelete
+                            requestMessage,
+                            HandleIncomingDateAsync
                         );
                     }
                     else

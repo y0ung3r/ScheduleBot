@@ -1,5 +1,4 @@
-﻿using ScheduleBot.Telegram.LongPolling;
-using ScheduleBot.Telegram.LongPolling.Interfaces;
+﻿using ScheduleBot.Telegram.LongPolling.Interfaces;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,12 +19,6 @@ namespace ScheduleBot.Telegram.Extensions
             {
                 await longPollingService.ReceiveAsync(rootHandler, cancellationToken);
             });
-        }
-
-        public static void RegisterStepHandler(this ILongPollingService longPollingService, long chatId, StepDelegate callback, 
-            params object[] payload)
-        {
-            longPollingService.StepHandlerStorage.RegisterStepHandler(chatId, callback, payload);
         }
     }
 }
