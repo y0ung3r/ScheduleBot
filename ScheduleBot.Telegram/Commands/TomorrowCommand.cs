@@ -2,8 +2,6 @@
 using ScheduleBot.Attributes;
 using ScheduleBot.Domain.Interfaces;
 using ScheduleBot.Parser.Interfaces;
-using ScheduleBot.Telegram.Extensions;
-using ScheduleBot.Telegram.LongPolling.Interfaces;
 using System;
 using System.Text;
 using System.Threading.Tasks;
@@ -33,10 +31,7 @@ namespace ScheduleBot.Telegram.Commands
         protected override async Task HandleAsync(Message message, string[] arguments, RequestDelegate nextHandler)
         {
             var chatId = message.Chat.Id;
-
-            var nextDate = DateTime.Today
-                                   .AddDays(1);
-
+            var nextDate = DateTime.Today.AddDays(1);
             var chatParameters = await _chatParametersService.GetChatParametersAsync(chatId);
 
             await _client.SendChatActionAsync
@@ -51,6 +46,7 @@ namespace ScheduleBot.Telegram.Commands
             {
                 var group = await _scheduleParser.ParseGroupAsync(chatParameters.FacultyId, chatParameters.GroupId, chatParameters.GroupTypeId);
                 var studyDay = await _scheduleParser.ParseStudyDayAsync(group, nextDate);
+
                 var html = studyDay.ToHTML();
                 stringBuilder.AppendLine(html);
             }

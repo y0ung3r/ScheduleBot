@@ -1,6 +1,6 @@
 ﻿using ScheduleBot.Telegram.LongPolling.Interfaces;
 using System.Collections.Generic;
-using System.Linq;
+using Telegram.Bot.Types.Enums;
 
 namespace ScheduleBot.Telegram.LongPolling
 {
@@ -18,7 +18,7 @@ namespace ScheduleBot.Telegram.LongPolling
             return _stepHandlersInfo.ContainsKey(chatId);
         }
 
-        public void RegisterStepHandler(long chatId, StepDelegate callback, object payload = null)
+        public void RegisterStepHandler(long chatId, StepDelegate callback, params object[] payload)
         {
             if (!IsStepHandlerRegistered(chatId))
             {

@@ -4,7 +4,7 @@
     {
         bool IsStepHandlerRegistered(long chatId);
 
-        void RegisterStepHandler(long chatId, StepDelegate callback, object payload = null);
+        void RegisterStepHandler(long chatId, StepDelegate callback, params object[] payload);
 
         StepHandlerInfo GetStepHandlerInfo(long chatId);
 
