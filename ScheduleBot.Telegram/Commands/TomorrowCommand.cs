@@ -32,27 +32,35 @@ namespace ScheduleBot.Telegram.Commands
         {
             var chatId = message.Chat.Id;
             var nextDate = DateTime.Today.AddDays(1);
-            var chatParameters = await _chatParametersService.GetChatParametersAsync(chatId);
-
-            await _client.SendChatActionAsync
-            (
-                chatId,
-                chatAction: ChatAction.Typing
-            );
 
             var stringBuilder = new StringBuilder();
 
-            if (chatParameters is not null)
+            if (!nextDate.DayOfWeek.Equals(DayOfWeek.Sunday))
             {
-                var group = await _scheduleParser.ParseGroupAsync(chatParameters.FacultyId, chatParameters.GroupId, chatParameters.GroupTypeId);
-                var studyDay = await _scheduleParser.ParseStudyDayAsync(group, nextDate);
+                var chatParameters = await _chatParametersService.GetChatParametersAsync(chatId);
 
-                var html = studyDay.ToHTML();
-                stringBuilder.AppendLine(html);
+                await _client.SendChatActionAsync
+                (
+                    chatId,
+                    chatAction: ChatAction.Typing
+                );
+
+                if (chatParameters is not null)
+                {
+                    var group = await _scheduleParser.ParseGroupAsync(chatParameters.FacultyId, chatParameters.GroupId, chatParameters.GroupTypeId);
+                    var studyDay = await _scheduleParser.ParseStudyDayAsync(group, nextDate);
+
+                    var html = studyDay.ToHTML();
+                    stringBuilder.AppendLine(html);
+                }
+                else
+                {
+                    stringBuilder.AppendLine("Вы не настроили бота, чтобы использовать этот функционал. Используйте /bind, чтобы начать работу");
+                }
             }
             else
             {
-                stringBuilder.AppendLine("Вы не настроили бота, чтобы использовать этот функционал. Используйте /bind, чтобы начать работу");
+                stringBuilder.AppendLine("Завтра выходной день. Используйте /schedule, чтобы получить расписание на следующую неделю");
             }
 
             await _client.SendTextMessageAsync

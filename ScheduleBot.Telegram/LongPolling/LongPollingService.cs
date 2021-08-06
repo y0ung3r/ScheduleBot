@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
 using ScheduleBot.Telegram.Extensions;
 using ScheduleBot.Telegram.LongPolling.Interfaces;
-using ScheduleBot.Telegram.ReplyService;
-using ScheduleBot.Telegram.ReplyService.Interfaces;
+using ScheduleBot.Telegram.StepHandler;
+using ScheduleBot.Telegram.StepHandler.Interfaces;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,13 +15,13 @@ namespace ScheduleBot.Telegram.LongPolling
     {
         private readonly ILogger<LongPollingService> _logger;
         private readonly ITelegramBotClient _client;
-        private readonly IReplyMessageService _replyMessageService;
+        private readonly ICallbackQueryListener _callbackQueryListener;
 
-        public LongPollingService(ILogger<LongPollingService> logger, ITelegramBotClient client, IReplyMessageService replyMessageService)
+        public LongPollingService(ILogger<LongPollingService> logger, ITelegramBotClient client, ICallbackQueryListener callbackQueryListener)
         {
             _logger = logger;
             _client = client;
-            _replyMessageService = replyMessageService;
+            _callbackQueryListener = callbackQueryListener;
         }
 
         public async Task ReceiveAsync(RequestDelegate rootHandler, CancellationToken cancellationToken = default)
@@ -58,11 +58,23 @@ namespace ScheduleBot.Telegram.LongPolling
                     {
                         _logger?.LogInformation($"Update received with type: {update.Type}");
 
-                        if (update.GetChatId() is long chatId && _replyMessageService.GetRequestInfo(chatId) is RequestInfo requestInfo)
+                        if (update.Message is Message message)
                         {
-                            await requestInfo.Callback(requestInfo.Message, update, requestInfo.Payload);
+                            _callbackQueryListener.UnregisterRequest(message.Chat.Id);
+                        }
 
-                            _replyMessageService.UnregisterRequest(chatId);
+                        var callbackQuery = update.CallbackQuery;
+
+                        if (callbackQuery is not null && _callbackQueryListener.GetRequestInfo(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId) is CallbackQueryRequestInfo requestInfo)
+                        {
+                            _callbackQueryListener.UnregisterRequest(requestInfo.Message.Chat.Id);
+
+                            await requestInfo.Callback
+                            (
+                                request: requestInfo.Message, 
+                                response: callbackQuery, 
+                                payload: requestInfo.Payload
+                            );
                         }
                         else
                         {
