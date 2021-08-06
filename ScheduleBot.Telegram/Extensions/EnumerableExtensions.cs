@@ -5,9 +5,9 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace ScheduleBot.Telegram.Extensions
 {
-    public static class CollectionExtensions
+    public static class EnumerableExtensions
     {
-        public static IList<IList<TSource>> ChunkBy<TSource>(this ICollection<TSource> source, int columnsCount)
+        public static IList<IList<TSource>> ChunkBy<TSource>(this IEnumerable<TSource> source, int columnsCount)
         {
             return source.Select((element, index) => new
             {
@@ -22,7 +22,7 @@ namespace ScheduleBot.Telegram.Extensions
             .ToList();
         }
 
-        public static IReplyMarkup ToReplyKeyboard<TSource, TValue>(this ICollection<TSource> source, 
+        public static IReplyMarkup ToReplyKeyboard<TSource, TValue>(this IEnumerable<TSource> source, 
             Func<TSource, TValue> keySelector, int columnsCount, 
             bool resizeKeyboard = false, bool oneTimeKeyboard = false)
         {
@@ -40,7 +40,7 @@ namespace ScheduleBot.Telegram.Extensions
             };
         }
 
-        public static IReplyMarkup ToInlineKeyboard<TSource, TValue>(this ICollection<TSource> source, 
+        public static IReplyMarkup ToInlineKeyboard<TSource, TValue>(this IEnumerable<TSource> source, 
             Func<TSource, TValue> keySelector, int columnsCount)
         {
             var keyboardButtons = source.Select

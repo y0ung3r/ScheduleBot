@@ -9,6 +9,7 @@ namespace ScheduleBot.Domain.Extensions
         public static IServiceCollection AddDomainServices(this IServiceCollection services)
         {
             services.TryAddTransient<IChatParametersService, ChatParametersService>();
+            services.TryAddTransient<IWeekDatesProvider, WeekDatesProvider>();
 
             return services;
         }

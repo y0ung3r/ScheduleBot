@@ -23,7 +23,7 @@ namespace ScheduleBot.Telegram.Extensions
         }
 
         public static void RegisterStepHandler(this ILongPollingService longPollingService, long chatId, StepDelegate callback, 
-            object payload = null)
+            params object[] payload)
         {
             longPollingService.StepHandlerStorage.RegisterStepHandler(chatId, callback, payload);
         }

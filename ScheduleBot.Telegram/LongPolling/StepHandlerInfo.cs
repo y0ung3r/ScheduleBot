@@ -1,9 +1,11 @@
-﻿namespace ScheduleBot.Telegram.LongPolling
+﻿using System;
+
+namespace ScheduleBot.Telegram.LongPolling
 {
     public class StepHandlerInfo
     {
         public StepDelegate Callback { get; set; }
 
-        public object Payload { get; set; }
+        public object[] Payload { get; set; }
     }
 }
