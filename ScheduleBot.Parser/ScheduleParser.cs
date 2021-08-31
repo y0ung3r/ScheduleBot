@@ -11,21 +11,16 @@ namespace ScheduleBot.Parser
 {
     public class ScheduleParser : IScheduleParser
     {
-        private readonly HttpClient _httpClient;
+        private readonly IRestClient _restClient;
 
-        public ScheduleParser()
+        public ScheduleParser(IRestClient restClient)
         {
-            _httpClient = new HttpClient();
-        }
-
-        public ScheduleParser(HttpClient httpClient)
-        {
-            _httpClient = httpClient;
+            _restClient = restClient;
         }
 
         public async Task<ICollection<Faculty>> ParseFacultiesAsync()
         {
-            var page = await _httpClient.CreateHtmlDocumentAsync
+            var page = await _restClient.CreateHtmlDocumentAsync
             (
                 ParserRoutes.GetBaseUri()
             );
@@ -62,7 +57,7 @@ namespace ScheduleBot.Parser
 
         public async Task<ICollection<Group>> ParseGroupsAsync(int facultyId)
         {
-            var page = await _httpClient.CreateHtmlDocumentAsync
+            var page = await _restClient.CreateHtmlDocumentAsync
             (
                 ParserRoutes.GetGroupsUri(facultyId)
             );
@@ -101,6 +96,24 @@ namespace ScheduleBot.Parser
             var groups = await ParseGroupsAsync(facultyId);
 
             return groups.FirstOrDefault(group => group.Id.Equals(groupId) && group.TypeId.Equals(groupTypeId));
+        }
+
+        public async Task<Group> ParseGroupAsync(string groupTitle)
+        {
+            var faculties = await ParseFacultiesAsync();
+
+            foreach (var faculty in faculties)
+            {
+                var groups = await ParseGroupsAsync(faculty.Id);
+                var group = groups.FirstOrDefault(group => group.Title.Equals(groupTitle));
+
+                if (group is not null)
+                {
+                    return group;
+                }
+            }
+
+            return default;
         }
 
         public async Task<ICollection<StudyDay>> ParseStudyDaysAsync(Group group, DateTime startDateTime, DateTime endDateTime)
@@ -158,7 +171,7 @@ namespace ScheduleBot.Parser
                 }
             );
 
-            var page = await _httpClient.CreateHtmlDocumentAsync
+            var page = await _restClient.CreateHtmlDocumentAsync
             (
                 ParserRoutes.GetLessonsUri(),
                 content

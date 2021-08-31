@@ -24,8 +24,6 @@ namespace ScheduleBot.Extensions
                 serviceProvider => (branch, predicate) => ActivatorUtilities.CreateInstance<InternalHandler>(serviceProvider, branch, predicate)
             );
 
-            services.AddHandler<MissingRequestHandler>();
-
             return services;
         }
 

@@ -1,11 +1,10 @@
 ﻿using ScheduleBot.Extensions;
 using ScheduleBot.Interfaces;
+using ScheduleBot.Telegram.Commands;
 using ScheduleBot.Telegram.Extensions;
 using ScheduleBot.Telegram.Handlers;
-using ScheduleBot.Telegram.Commands;
 using System;
 using System.Threading.Tasks;
-using Telegram.Bot.Types;
 
 namespace ScheduleBot.Telegram
 {
@@ -28,8 +27,7 @@ namespace ScheduleBot.Telegram
                           .UseCommand<BindCommand>()
                           .UseCommand<ScheduleCommand>()
                           .UseCommand<TomorrowCommand>()
-                          .UseInternalHandler<UnknownMessageHandler>(When.MessageReceived)
-                          .UseInternalHandler<UnknownCallbackQueryHandler>(When.CallbackQueryReceived);
+                          .UseHandler<MissingUpdateHandler>();
         }
 
         private TelegramScheduleBot CreateTelegramScheduleBot()

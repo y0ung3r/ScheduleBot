@@ -9,10 +9,7 @@ namespace ScheduleBot.Interfaces
 
         IBranchBuilder UseHandler(IRequestHandler handler);
 
-        IBranchBuilder UseHandler<TRequestHandler>()
-            where TRequestHandler : IRequestHandler;
-
-        IBranchBuilder UseInternalHandler(Predicate<object> predicate, Action<IBranchBuilder> configure);
+        IBranchBuilder UseBranch(Predicate<object> predicate, Action<IBranchBuilder> configure);
 
         RequestDelegate Build();
     }

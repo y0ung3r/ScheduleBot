@@ -3,7 +3,7 @@ using ScheduleBot.Attributes;
 using ScheduleBot.Domain.Interfaces;
 using ScheduleBot.Parser.Interfaces;
 using ScheduleBot.Telegram.Extensions;
-using ScheduleBot.Telegram.LongPolling.Interfaces;
+using ScheduleBot.Telegram.StepHandler.Interfaces;
 using System.Linq;
 using System.Threading.Tasks;
 using Telegram.Bot;
@@ -19,16 +19,16 @@ namespace ScheduleBot.Telegram.Commands
         private readonly ITelegramBotClient _client;
         private readonly IScheduleParser _scheduleParser;
         private readonly IChatParametersService _chatParametersService;
-        private readonly ILongPollingService _longPollingService;
+        private readonly ICallbackQueryListener _callbackQueryListener;
 
         public BindCommand(ILogger<BindCommand> logger, ITelegramBotClient client, IScheduleParser scheduleParser,
-            IChatParametersService chatParametersService, ILongPollingService longPollingService)
+            IChatParametersService chatParametersService, ICallbackQueryListener callbackQueryListener)
         {
             _logger = logger;
             _client = client;
             _scheduleParser = scheduleParser;
             _chatParametersService = chatParametersService;
-            _longPollingService = longPollingService;
+            _callbackQueryListener = callbackQueryListener;
         }
 
         protected override async Task HandleAsync(Message message, string[] arguments, RequestDelegate nextHandler)
@@ -48,124 +48,110 @@ namespace ScheduleBot.Telegram.Commands
                 chatAction: ChatAction.Typing
             );
 
-            var messageToDelete = await _client.SendTextMessageAsync
+            var request = await _client.SendTextMessageAsync
             (
                 chatId,
                 text: "Выберите факультет, к которому Вас нужно прикрепить:",
                 replyMarkup: inlineKeyboard
             );
 
-            _longPollingService.RegisterStepHandler
+            _callbackQueryListener.RegisterRequest
             (
-                chatId,
-                HandleIncomingFacultyAsync,
-                messageToDelete
+                request,
+                HandleIncomingFacultyAsync
             );
 
             _logger?.LogInformation("Bind command processed");
         }
 
-        private async Task HandleIncomingFacultyAsync(Update update, params object[] payload)
+        private async Task HandleIncomingFacultyAsync(Message request, CallbackQuery response, params object[] payload)
         {
-            var payloadMessage = (Message)payload.First();
-            var callbackQuery = update.CallbackQuery;
+            var chatId = response.Message.Chat.Id;
 
-            if (callbackQuery is not null)
+            var faculties = await _scheduleParser.ParseFacultiesAsync();
+            var facultyAbbreviation = response.Data;
+            var faculty = faculties.FirstOrDefault(faculty => faculty.TitleAbbreviation.Equals(facultyAbbreviation));
+
+            if (faculty is not null)
             {
-                var chatId = callbackQuery.Message.Chat.Id;
+                var groups = await _scheduleParser.ParseGroupsAsync(faculty.Id);
 
-                var faculties = await _scheduleParser.ParseFacultiesAsync();
-                var facultyAbbreviation = callbackQuery.Data;
-                var faculty = faculties.FirstOrDefault(faculty => faculty.TitleAbbreviation.Equals(facultyAbbreviation));
+                var inlineKeyboard = groups.ToInlineKeyboard
+                (
+                    group => group.Title,
+                    columnsCount: 3
+                );
 
-                if (faculty is not null)
-                {
-                    var groups = await _scheduleParser.ParseGroupsAsync(faculty.Id);
+                await _client.SendChatActionAsync
+                (
+                    chatId,
+                    chatAction: ChatAction.Typing
+                );
 
-                    var inlineKeyboard = groups.ToInlineKeyboard
-                    (
-                        group => group.Title,
-                        columnsCount: 3
-                    );
+                await _client.DeleteMessageAsync
+                (
+                    chatId,
+                    messageId: request.MessageId
+                );
 
-                    await _client.SendChatActionAsync
-                    (
-                        chatId,
-                        chatAction: ChatAction.Typing
-                    );
+                var nextRequest = await _client.SendTextMessageAsync
+                (
+                    chatId,
+                    text: "Теперь выберите группу:",
+                    replyMarkup: inlineKeyboard
+                );
 
-                    await _client.DeleteMessageAsync
-                    (
-                        chatId,
-                        messageId: payloadMessage.MessageId
-                    );
-
-                    var messageToDelete = await _client.SendTextMessageAsync
-                    (
-                        chatId,
-                        text: "Теперь выберите группу:",
-                        replyMarkup: inlineKeyboard
-                    );
-
-                    _longPollingService.RegisterStepHandler
-                    (
-                        chatId,
-                        HandleIncomingGroupAsync,
-                        messageToDelete,
-                        faculty.Id
-                    );
-                }
-
-                await _client.AnswerCallbackQueryAsync(callbackQuery.Id);
+                _callbackQueryListener.RegisterRequest
+                (
+                    nextRequest,
+                    HandleIncomingGroupAsync,
+                    faculty.Id
+                );
             }
+
+            await _client.AnswerCallbackQueryAsync(response.Id);
         }
 
-        private async Task HandleIncomingGroupAsync(Update update, params object[] payload)
+        private async Task HandleIncomingGroupAsync(Message request, CallbackQuery response, params object[] payload)
         {
-            var payloadMessage = (Message)payload.First();
-            var facultyId = (int)payload.Last();
+            var facultyId = (int)payload.First();
+            var chatId = response.Message.Chat.Id;
 
-            var callbackQuery = update.CallbackQuery;
+            var groups = await _scheduleParser.ParseGroupsAsync(facultyId);
+            var groupTitle = response.Data;
+            var group = groups.FirstOrDefault(group => group.Title.Equals(groupTitle));
 
-            if (callbackQuery is not null)
+            if (group is not null)
             {
-                var chatId = callbackQuery.Message.Chat.Id;
+                await _client.SendChatActionAsync
+                (
+                    chatId,
+                    chatAction: ChatAction.Typing
+                );
 
-                var groups = await _scheduleParser.ParseGroupsAsync(facultyId);
-                var groupTitle = callbackQuery.Data;
-                var group = groups.FirstOrDefault(group => group.Title.Equals(groupTitle));
+                await _chatParametersService.SaveChatParametersAsync
+                (
+                    chatId,
+                    facultyId,
+                    group.Id,
+                    group.TypeId
+                );
 
-                if (group is not null)
-                {
-                    await _client.SendChatActionAsync
-                    (
-                        chatId,
-                        chatAction: ChatAction.Typing
-                    );
+                await _client.DeleteMessageAsync
+                (
+                    chatId,
+                    messageId: request.MessageId
+                );
 
-                    await _chatParametersService.SaveChatParametersAsync
-                    (
-                        chatId,
-                        facultyId,
-                        group.Id,
-                        group.TypeId
-                    );
-
-                    await _client.DeleteMessageAsync
-                    (
-                        chatId,
-                        messageId: payloadMessage.MessageId
-                    );
-
-                    await _client.SendTextMessageAsync
-                    (
-                        chatId,
-                        text: "Настройка завершена. Теперь Вы будете получать расписание с учетом сохраненных параметров"
-                    );
-                }
-
-                await _client.AnswerCallbackQueryAsync(callbackQuery.Id);
+                await _client.SendTextMessageAsync
+                (
+                    chatId,
+                    text: "Настройка завершена. Теперь Вы будете получать расписание с учетом сохраненных параметров"
+                );
             }
+
+            await _client.AnswerCallbackQueryAsync(response.Id);
+
         }
     }
 }

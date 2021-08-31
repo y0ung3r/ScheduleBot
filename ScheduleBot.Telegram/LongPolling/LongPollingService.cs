@@ -1,14 +1,13 @@
 ﻿using Microsoft.Extensions.Logging;
-using ScheduleBot.Handlers.Interfaces;
 using ScheduleBot.Telegram.Extensions;
 using ScheduleBot.Telegram.LongPolling.Interfaces;
+using ScheduleBot.Telegram.StepHandler;
+using ScheduleBot.Telegram.StepHandler.Interfaces;
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
-using Telegram.Bot.Types.Enums;
 
 namespace ScheduleBot.Telegram.LongPolling
 {
@@ -16,15 +15,13 @@ namespace ScheduleBot.Telegram.LongPolling
     {
         private readonly ILogger<LongPollingService> _logger;
         private readonly ITelegramBotClient _client;
+        private readonly ICallbackQueryListener _callbackQueryListener;
 
-        public IStepHandlerStorage StepHandlerStorage { get; }
-
-        public LongPollingService(ILogger<LongPollingService> logger, ITelegramBotClient client, IStepHandlerStorage stepHandlerStorage)
+        public LongPollingService(ILogger<LongPollingService> logger, ITelegramBotClient client, ICallbackQueryListener callbackQueryListener)
         {
             _logger = logger;
             _client = client;
-
-            StepHandlerStorage = stepHandlerStorage;
+            _callbackQueryListener = callbackQueryListener;
         }
 
         public async Task ReceiveAsync(RequestDelegate rootHandler, CancellationToken cancellationToken = default)
@@ -61,26 +58,23 @@ namespace ScheduleBot.Telegram.LongPolling
                     {
                         _logger?.LogInformation($"Update received with type: {update.Type}");
 
-                        if (update.GetChatId() is long chatId)
+                        if (update.Message is Message message)
                         {
-                            var isCommand = update.IsCommand();
+                            _callbackQueryListener.UnregisterRequest(message.Chat.Id);
+                        }
 
-                            if (isCommand)
-                            {
-                                StepHandlerStorage.ClearChatStepHandler(chatId);
-                            }
+                        var callbackQuery = update.CallbackQuery;
 
-                            if (StepHandlerStorage.IsStepHandlerRegistered(chatId))
-                            {
-                                var stepHandlerInfo = StepHandlerStorage.GetStepHandlerInfo(chatId);
-                                StepHandlerStorage.ClearChatStepHandler(chatId);
+                        if (callbackQuery is not null && _callbackQueryListener.GetRequestInfo(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId) is CallbackQueryRequestInfo requestInfo)
+                        {
+                            _callbackQueryListener.UnregisterRequest(requestInfo.Message.Chat.Id);
 
-                                await stepHandlerInfo.Callback.Invoke(update, stepHandlerInfo.Payload);
-                            }
-                            else
-                            {
-                                await rootHandler(update);
-                            }
+                            await requestInfo.Callback
+                            (
+                                request: requestInfo.Message, 
+                                response: callbackQuery, 
+                                payload: requestInfo.Payload
+                            );
                         }
                         else
                         {

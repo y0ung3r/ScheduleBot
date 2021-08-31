@@ -4,54 +4,31 @@ using ScheduleBot.Handlers.Interfaces;
 using ScheduleBot.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace ScheduleBot
 {
     public class BranchBuilder : IBranchBuilder
     {
-        private readonly Stack<Func<RequestDelegate, RequestDelegate>> _branch;
+        private readonly Stack<IRequestHandler> _handlers;
 
         public IServiceProvider ServiceProvider { get; }
 
         public BranchBuilder(IServiceProvider serviceProvider)
         {
+            _handlers = new Stack<IRequestHandler>();
+
             ServiceProvider = serviceProvider;
-
-            _branch = new Stack<Func<RequestDelegate, RequestDelegate>>();
-        }
-
-        private RequestDelegate BuildRootHandler()
-        {
-            var rootHandler = default(RequestDelegate);
-
-            foreach (var handler in _branch)
-            {
-                rootHandler = handler(rootHandler);
-            }
-
-            return rootHandler;
         }
 
         public IBranchBuilder UseHandler(IRequestHandler handler)
         {
-            _branch.Push
-            (
-                next => request => handler.HandleAsync(request, next)
-            );
+            _handlers.Push(handler);
 
             return this;
         }
 
-        public IBranchBuilder UseHandler<TRequestHandler>()
-            where TRequestHandler : IRequestHandler
-        {
-            return UseHandler
-            (
-                ServiceProvider.GetRequiredService<TRequestHandler>()
-            );
-        }
-
-        public IBranchBuilder UseInternalHandler(Predicate<object> predicate, Action<IBranchBuilder> configure)
+        public IBranchBuilder UseBranch(Predicate<object> predicate, Action<IBranchBuilder> configure)
         {
             var branchBuilder = ServiceProvider.GetRequiredService<IBranchBuilder>();
             configure(branchBuilder);
@@ -61,19 +38,28 @@ namespace ScheduleBot
 
             return UseHandler
             (
-                internalHandlerFactory
-                (
-                    branch,
-                    predicate
-                )
+                internalHandlerFactory(branch, predicate)
             );
         }
 
-        public RequestDelegate Build()
+        public RequestDelegate Build() 
         {
-            UseHandler<MissingRequestHandler>();
+            var rootHandler = default(RequestDelegate);
 
-            return BuildRootHandler();
+            var branch = _handlers.Select
+            (
+                handler => new Func<RequestDelegate, RequestDelegate>
+                (
+                    next => request => handler.HandleAsync(request, next)
+                )
+            );
+
+            foreach (var handler in branch)
+            {
+                rootHandler = handler(rootHandler);
+            }
+
+            return rootHandler;
         }
     }
 }

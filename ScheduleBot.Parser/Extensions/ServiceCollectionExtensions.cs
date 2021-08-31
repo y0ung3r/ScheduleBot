@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using ScheduleBot.Parser.Interfaces;
-using System.Net.Http;
 
 namespace ScheduleBot.Parser.Extensions
 {
@@ -10,15 +9,8 @@ namespace ScheduleBot.Parser.Extensions
         public static IServiceCollection AddScheduleParser<TScheduleParser>(this IServiceCollection services)
             where TScheduleParser : IScheduleParser
         {
-            services.TryAddSingleton
-            (
-                typeof(IScheduleParser),
-                serviceProvider => ActivatorUtilities.CreateInstance<TScheduleParser>
-                (
-                    serviceProvider, 
-                    new HttpClient()
-                )
-            );
+            services.TryAddSingleton<IRestClient, RestClient>();
+            services.TryAddSingleton<IScheduleParser, ScheduleParser>();
 
             return services;
         }
