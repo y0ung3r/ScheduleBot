@@ -28,6 +28,7 @@ namespace ScheduleBot.Extensions
         public static bool TryGetCommandAttribute(this ICommandHandler commandHandler, out CommandTextAttribute attribute)
         {
             attribute = commandHandler.GetCommandAttribute();
+
             return attribute is not null;
         }
 

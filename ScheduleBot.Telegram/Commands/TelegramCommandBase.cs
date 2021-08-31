@@ -1,10 +1,13 @@
-﻿using ScheduleBot.Extensions;
+﻿using Microsoft.Extensions.DependencyInjection;
+using ScheduleBot.Extensions;
 using ScheduleBot.Handlers.Interfaces;
 using ScheduleBot.Telegram.Extensions;
 using ScheduleBot.Telegram.Handlers;
+using System;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Telegram.Bot;
 using Telegram.Bot.Types;
 
 namespace ScheduleBot.Telegram.Commands
@@ -38,12 +41,19 @@ namespace ScheduleBot.Telegram.Commands
             );
         }
 
-        public bool CanHandle(object request)
+        public bool CanHandle(IServiceProvider serviceProvider, object request)
         {
+            var client = serviceProvider.GetRequiredService<ITelegramBotClient>();
+            var botInfo = client.GetMeAsync()
+                                .GetAwaiter()
+                                .GetResult();
+
             return request is Update update && 
                    update.IsCommand() && 
-                   this.IsCommandTextContains(update.Message.Text) && 
-                   CanHandle(update.Message);
+                   update.Message is Message message &&
+                   message.IsContainsBotMention(botInfo) &&
+                   this.IsCommandTextContains(message.Text) &&
+                   CanHandle(message);
         }
 
         #region Abstract Methods

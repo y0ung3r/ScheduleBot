@@ -2,7 +2,9 @@
 using ScheduleBot.Attributes;
 using ScheduleBot.Domain.Interfaces;
 using ScheduleBot.Parser.Interfaces;
+using ScheduleBot.Parser.Models;
 using System;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Telegram.Bot;
@@ -37,25 +39,44 @@ namespace ScheduleBot.Telegram.Commands
 
             if (!nextDate.DayOfWeek.Equals(DayOfWeek.Sunday))
             {
-                var chatParameters = await _chatParametersService.GetChatParametersAsync(chatId);
-
                 await _client.SendChatActionAsync
                 (
                     chatId,
                     chatAction: ChatAction.Typing
                 );
 
-                if (chatParameters is not null)
+                var group = default(Group);
+                var receivedGroupName = arguments.FirstOrDefault();
+
+                if (!string.IsNullOrWhiteSpace(receivedGroupName))
                 {
-                    var group = await _scheduleParser.ParseGroupAsync(chatParameters.FacultyId, chatParameters.GroupId, chatParameters.GroupTypeId);
+                    group = await _scheduleParser.ParseGroupAsync(receivedGroupName);
+
+                    if (group is null)
+                    {
+                        stringBuilder.AppendLine($"Группа под названием \"{receivedGroupName}\" не найдена. Пожалуйста, уточните запрос");
+                    }
+                }
+                else
+                {
+                    var chatParameters = await _chatParametersService.GetChatParametersAsync(chatId);
+
+                    if (chatParameters is not null)
+                    {
+                        group = await _scheduleParser.ParseGroupAsync(chatParameters.FacultyId, chatParameters.GroupId, chatParameters.GroupTypeId);
+                    }
+                    else
+                    {
+                        stringBuilder.AppendLine("Вы не настроили бота, чтобы использовать этот функционал. Используйте /bind, чтобы начать работу");
+                    }
+                }
+
+                if (group is not null)
+                {
                     var studyDay = await _scheduleParser.ParseStudyDayAsync(group, nextDate);
 
                     var html = studyDay.ToHTML();
                     stringBuilder.AppendLine(html);
-                }
-                else
-                {
-                    stringBuilder.AppendLine("Вы не настроили бота, чтобы использовать этот функционал. Используйте /bind, чтобы начать работу");
                 }
             }
             else

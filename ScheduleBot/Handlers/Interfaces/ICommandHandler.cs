@@ -1,7 +1,9 @@
-﻿namespace ScheduleBot.Handlers.Interfaces
+﻿using System;
+
+namespace ScheduleBot.Handlers.Interfaces
 {
     public interface ICommandHandler : IRequestHandler
     {
-        bool CanHandle(object request);
+        bool CanHandle(IServiceProvider serviceProvider, object request);
     }
 }

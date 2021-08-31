@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>Расписание СФ БашГУ</title>
+    </head>
+    <body>
+        <!---->
+        <div id="blindWrapper">
+            <div id="blindBlock">
+                Версия для слабовидящих:
+                <a id="blindOn" style="display: inline-block;">Вкл</a>
+                <a id="blindOff" style="display: none;">Выкл</a>
+                Изображения:
+                <a id="ImageOn" style="display: none;">Вкл</a>
+                <a id="ImageOff" style="display: inline-block;">Выкл</a>
+                Размер шрифта:
+                <a id="SmallFonts">A</a>
+                <a id="MediumFonts">A</a>
+                <a id="BigFonts">A</a>
+                Цветовая схема:
+                <a id="WhiteStyle">A</a>
+                <a id="BlackStyle">A</a>
+            </div>
+        </div>
+        <input type="hidden" name="group_name" value="">
+        <input type="hidden" name="teacher" value="">
+        <div class="container">
+            <h1 class="blindBtn">Версия для слабовидящих</h1>
+            <!-- <ul class = "nice-menu"> -->
+            <ul class="menu">
+                <li class='blue'><a href='http://strbsu.ru'>Перейти на сайт СФ БашГУ</a></li>
+                <li class='red' onClick='getGroups(4)'><a href='#'>Филологический факультет</a></li>
+                <li class='red' onClick='getGroups(5)'><a href='#'>Факультет башкирской и тюркской филологии</a></li>
+                <li class='red' onClick='getGroups(6)'><a href='#'>Исторический факультет</a></li>
+                <li class='red' onClick='getGroups(7)'><a href='#'>Факультет математики и информационных технологий</a></li>
+                <li class='red' onClick='getGroups(8)'><a href='#'>Естественнонаучный факультет</a></li>
+                <li class='red' onClick='getGroups(9)'><a href='#'>Факультет педагогики и психологии</a></li>
+                <li class='red' onClick='getGroups(10)'><a href='#'>Экономический факультет</a></li>
+                <li class='red' onClick='getGroups(18)'><a href='#'>Юридический факультет</a></li>
+                <li class='red' onClick='getGroups(26)'><a href='#'>Колледж</a></li>
+                <li class='red' onClick='getGroups(27)'><a href='#'>Физическая культура и адаптивная физическая культура</a></li>
+                <li class='red' onClick='getGroups(127)'><a href='#'>Аспирантура</a></li>
+                <li class='blue' onClick='getKorpus()'><a href='#'>Кабинеты</a></li>
+                <li class='blue' onClick='getPrepList()'><a href='#'>Преподаватели</a></li>
+            </ul>
+            <div class="letters" id='letters_block'>
+            </div>
+            <div class="groups" id='groups_block'>
+            </div>
+            <div class="preps">
+            </div>
+            <div id='korpus_block'>
+            </div>
+        </div>
+        <!--container-->
+        <div class="container2">
+            <div class="rasp_head">
+            </div>
+            <a id='rasp_tag'></a>
+            <div class="raspisanie">
+            </div>
+            <!--raspisanie-->
+        </div>
+        <!--container2-->
+    </body>
+</html>

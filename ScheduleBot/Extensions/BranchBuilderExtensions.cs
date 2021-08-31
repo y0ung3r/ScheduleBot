@@ -29,11 +29,12 @@ namespace ScheduleBot.Extensions
         public static IBranchBuilder UseCommand<TCommandHandler>(this IBranchBuilder builder)
             where TCommandHandler : ICommandHandler
         {
+            var serviceProvider = builder.ServiceProvider;
+
             return builder.UseBranch<TCommandHandler>
             (
-                request => builder.ServiceProvider
-                                  .GetRequiredService<TCommandHandler>()
-                                  .CanHandle(request)
+                request => serviceProvider.GetRequiredService<TCommandHandler>()
+                                          .CanHandle(serviceProvider, request)
             );
         }
     }

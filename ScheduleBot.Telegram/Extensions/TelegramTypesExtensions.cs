@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Text.RegularExpressions;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
@@ -29,6 +30,16 @@ namespace ScheduleBot.Telegram.Extensions
                          .Entities?
                          .FirstOrDefault()?
                          .Type is MessageEntityType.BotCommand;
+        }
+
+        public static bool IsContainsBotMention(this Message message, User botInfo)
+        {
+            return Regex.IsMatch
+            (
+                message.EntityValues.First(),
+                $@"^\/\w*(?:@{botInfo.Username})?$",
+                RegexOptions.IgnoreCase
+            );
         }
     }
 }

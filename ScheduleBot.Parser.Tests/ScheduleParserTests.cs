@@ -1,27 +1,20 @@
 using NUnit.Framework;
-using ScheduleBot.Parser.Interfaces;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace ScheduleBot.Parser.Tests
 {
-    public class ScheduleParserTests
+    public class ScheduleParserTests : BaseTest
     {
-        private IScheduleParser _scheduleParser;
-
-        [OneTimeSetUp]
-        public void Setup()
-        {
-            _scheduleParser = new ScheduleParser();
-        }
-
         [Test]
         [TestCase("Колледж")]
         [TestCase("Исторический факультет")]
         [TestCase("Факультет математики и информационных технологий")]
         public async Task FacultiesParsingTestAsync(string facultyTitle)
         {
+            LoadHtmlFromFile("FacultiesPage");
+
             var faculties = await _scheduleParser.ParseFacultiesAsync();
             var faculty = faculties.FirstOrDefault(faculty => faculty.Title.Contains(facultyTitle));
 
@@ -34,17 +27,20 @@ namespace ScheduleBot.Parser.Tests
         [TestCase(6, "Исторический факультет")]
         public async Task FacultyParsingTestAsync(int facultyId, string facultyTitle)
         {
+            LoadHtmlFromFile("FacultiesPage");
+
             var faculty = await _scheduleParser.ParseFacultyAsync(facultyId);
 
             Assert.AreEqual(faculty.Title, facultyTitle);
         }
 
         [Test]
-        [TestCase(7, "ПМИ21")]
-        [TestCase(8, "ХИМ11")]
-        [TestCase(9, "НДО31")]
-        public async Task GroupsParsingTestAsync(int facultyId, string groupTitle)
+        [TestCase(7, "ПМИ21", "GroupsPage (ФМиИТ)")]
+        [TestCase(8, "ХИМ11", "GroupsPage (ЕНФ)")]
+        public async Task GroupsParsingTestAsync(int facultyId, string groupTitle, string filepath)
         {
+            LoadHtmlFromFile(filepath);
+
             var groups = await _scheduleParser.ParseGroupsAsync(facultyId);
             var group = groups.FirstOrDefault(group => group.Title.Equals(groupTitle));
 
@@ -52,24 +48,41 @@ namespace ScheduleBot.Parser.Tests
         }
 
         [Test]
-        [TestCase(8, 19, 2, "ХИМ11")]
         [TestCase(7, 13, 2, "ПМИ21")]
-        [TestCase(10, 9227, 2, "ЭБ21")]
+        [TestCase(7, 10288, 2, "ММИ21")]
+        [TestCase(7, 16, 2, "АИС21")]
         public async Task GroupParsingTestAsync(int facultyId, int groupId, int groupTypeId, string groupTitle)
         {
+            LoadHtmlFromFile("GroupsPage (ФМиИТ)");
+
             var group = await _scheduleParser.ParseGroupAsync(facultyId, groupId, groupTypeId);
 
             Assert.AreEqual(group.Title, groupTitle);
         }
 
         [Test]
-        [TestCase(8, 19, 2, "2021-6-2", "Строение вещества", "2021-6-7", "День самостоятельной работы", "2021-6-5")]
-        [TestCase(8, 19, 2, "2021-5-31", "Строение вещества", "2021-6-5", "История России", "2021-6-4")]
-        [TestCase(8, 19, 2, "2021-6-1", "Аналитическая химия", "2021-6-3", "Строение вещества", "2021-6-2")]
+        [TestCase("ПМИ21")]
+        [TestCase("ПМИ31")]
+        [TestCase("ПМИ41")]
+        [TestCase("МИ11")]
+        public async Task GroupParsingByTitleTestAsync(string groupTitle)
+        {
+            LoadHtmlFromFile("GroupsPage");
+
+            var group = await _scheduleParser.ParseGroupAsync(groupTitle);
+
+            Assert.AreEqual(group.Title, groupTitle);
+        }
+
+        [Test]
+        [TestCase(7, 13, 2, "2021-9-1", "Архитектура компьютеров", "2021-9-4", "Дискретная математика", "2021-9-3")]
+        [TestCase(7, 13, 2, "2021-9-1", "Архитектура компьютеров", "2021-9-2", "Архитектура компьютеров", "2021-9-1")]
         public async Task StudyDaysParsingTestAsync(int facultyId, int groupId, int groupTypeId, 
             DateTime startDateTime, string startLessonTitle, DateTime endDateTime, 
             string penultimateLessonTitle, DateTime penultimateDateTime)
         {
+            LoadHtmlFromFile("StudyDaysPage");
+
             var group = await _scheduleParser.ParseGroupAsync(facultyId, groupId, groupTypeId);
             var studyDays = await _scheduleParser.ParseStudyDaysAsync(group, startDateTime, endDateTime);
             var startStudyDay = studyDays.FirstOrDefault();
@@ -86,13 +99,13 @@ namespace ScheduleBot.Parser.Tests
         }
 
         [Test]
-        [TestCase(8, 19, 2, "2021-6-2", "Строение вещества", "Пр")]
-        [TestCase(8, 19, 2, "2021-5-31", "Строение вещества", "Пр")]
-        [TestCase(8, 19, 2, "2021-6-1", "Аналитическая химия", "Лаб")]
-        [TestCase(7, 13, 2, "2021-6-22", "Иностранный язык", "Экзамен")]
+        [TestCase(7, 13, 2, "2021-9-1", "Архитектура компьютеров", "Лек")]
+        [TestCase(7, 13, 2, "2021-9-2", "Web-программирование", "Лек")]
         public async Task StudyDayParsingTestAsync(int facultyId, int groupId, int groupTypeId, 
             DateTime dateTime, string lessonTitle, string lessonType)
         {
+            LoadHtmlFromFile("StudyDaysPage");
+
             var group = await _scheduleParser.ParseGroupAsync(facultyId, groupId, groupTypeId);
             var studyDay = await _scheduleParser.ParseStudyDayAsync(group, dateTime);
             var studyDayLesson = studyDay.Lessons.FirstOrDefault(lesson => lesson.Title.Equals(lessonTitle));
