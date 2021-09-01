@@ -21,7 +21,7 @@ namespace ScheduleBot.Parser.Models
         {
             var stringBuilder = new StringBuilder();
 
-            stringBuilder.AppendLine($"<b>Расписание на {Date.ToShortDateString()}:</b>")
+            stringBuilder.AppendLine($"<b>Расписание на {Date:dd.MM.yyyy (dddd)}:</b>")
                              .AppendLine();
 
             if (Lessons.Count > 0)
