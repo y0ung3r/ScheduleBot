@@ -24,6 +24,21 @@ namespace ScheduleBot.Telegram.Extensions
             };
         }
 
+        public static ChatType? GetChatType(this Update update)
+        {
+            return update.Type switch
+            {
+                UpdateType.Message => update.Message.Chat.Type,
+                UpdateType.CallbackQuery => update.CallbackQuery.Message.Chat.Type,
+                UpdateType.EditedMessage => update.EditedMessage.Chat.Type,
+                UpdateType.ChannelPost => update.ChannelPost.Chat.Type,
+                UpdateType.EditedChannelPost => update.EditedChannelPost.Chat.Type,
+                UpdateType.MyChatMember => update.MyChatMember.Chat.Type,
+                UpdateType.ChatMember => update.ChatMember.Chat.Type,
+                _ => default(ChatType?)
+            };
+        }
+
         public static bool IsCommand(this Update update)
         {
             return update.Message?

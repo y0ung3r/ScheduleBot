@@ -3,6 +3,7 @@ using ScheduleBot.Telegram.Extensions;
 using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
 namespace ScheduleBot.Telegram.Handlers
 {
@@ -20,7 +21,7 @@ namespace ScheduleBot.Telegram.Handlers
         protected override async Task HandleAsync(Update update, RequestDelegate nextHandler)
         {
             _logger.LogWarning($"No handler for request with type: {update.Type}");
-
+            
             if (update.CallbackQuery is CallbackQuery callbackQuery)
             {
                 await _client.AnswerCallbackQueryAsync
@@ -29,7 +30,7 @@ namespace ScheduleBot.Telegram.Handlers
                     text: "Невозможно обработать Ваш запрос"
                 );
             }
-            else if (update.GetChatId() is long chatId)
+            else if (update.GetChatId() is long chatId && update.GetChatType() is not ChatType.Group)
             {
                 await _client.SendTextMessageAsync
                 (
