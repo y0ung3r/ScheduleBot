@@ -46,15 +46,15 @@ namespace ScheduleBot.Telegram.Commands
                 );
 
                 var group = default(Group);
-                var receivedGroupName = arguments.FirstOrDefault();
+                var incomingGroupTitle = arguments.FirstOrDefault();
 
-                if (!string.IsNullOrWhiteSpace(receivedGroupName))
+                if (!string.IsNullOrWhiteSpace(incomingGroupTitle))
                 {
-                    group = await _scheduleParser.ParseGroupAsync(receivedGroupName);
+                    group = await _scheduleParser.ParseGroupAsync(incomingGroupTitle);
 
                     if (group is null)
                     {
-                        stringBuilder.AppendLine($"Группа под названием \"{receivedGroupName}\" не найдена. Пожалуйста, уточните запрос");
+                        stringBuilder.AppendLine($"Группа под названием \"{incomingGroupTitle}\" не найдена. Пожалуйста, уточните запрос");
                     }
                 }
                 else
