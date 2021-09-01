@@ -151,7 +151,6 @@ namespace ScheduleBot.Telegram.Commands
             }
 
             await _client.AnswerCallbackQueryAsync(response.Id);
-
         }
     }
 }

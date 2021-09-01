@@ -1,4 +1,5 @@
-﻿using ScheduleBot.Parser.Extensions;
+﻿using HtmlAgilityPack;
+using ScheduleBot.Parser.Extensions;
 using ScheduleBot.Parser.Interfaces;
 using ScheduleBot.Parser.Models;
 using System;
@@ -29,24 +30,10 @@ namespace ScheduleBot.Parser
 
             return page.DocumentNode
                        .SelectNodes(".//*[contains(@class, 'menu')]/*[contains(@class, 'red')]")
-                       .Select(node =>
-                       {
-                           var onClickParameters = node.Attributes["onclick"]
-                                                       .Value
-                                                       .GetTextBetweenBrackets()
-                                                       .Split(",");
-
-                           var id = Convert.ToInt32
-                           (
-                               onClickParameters.First()
-                           );
-
-                           return new Faculty()
-                           {
-                               Id = id,
-                               Title = node.InnerText
-                           };
-                       })
+                       .Select
+                       (
+                           node => node.ToFaculty()
+                       )
                        .ToList();
         }
 
@@ -66,30 +53,10 @@ namespace ScheduleBot.Parser
 
             return page.DocumentNode
                        .SelectNodes(".//ul/li/a")
-                       .Select(node =>
-                       {
-                           var onClickParameters = node.Attributes["onclick"]
-                                                       .Value
-                                                       .GetTextBetweenBrackets()
-                                                       .Split(",");
-
-                           var typeId = Convert.ToInt32
-                           (
-                               onClickParameters.ElementAt(index: 1)
-                           );
-
-                           var id = Convert.ToInt32
-                           (
-                               onClickParameters.ElementAt(index: 2)
-                           );
-
-                           return new Group()
-                           {
-                               Id = id,
-                               TypeId = typeId,
-                               Title = node.InnerText
-                           };
-                       })
+                       .Select
+                       (
+                           node => node.ToGroup()
+                       )
                        .ToList();
         }
 
@@ -134,21 +101,10 @@ namespace ScheduleBot.Parser
 
             return page.DocumentNode
                        .SelectNodes(".//*[contains(@id, 'letter')]")
-                       .Select(node =>
-                       {
-                           var onClickParameter = node.Attributes["onclick"]
-                                                      .Value
-                                                      .GetTextBetweenBrackets();
-
-                           var index = Convert.ToInt32(onClickParameter);
-                           var symbol = char.Parse(node.InnerText);
-
-                           return new Letter()
-                           {
-                               Index = index,
-                               Symbol = symbol
-                           };
-                       })
+                       .Select
+                       (
+                           node => node.ToLetter()
+                       )
                        .ToList();
         }
 
@@ -189,30 +145,10 @@ namespace ScheduleBot.Parser
 
                 teachers.AddRange
                 (
-                    nodes.Select(node =>
-                    {
-                        var onClickParameters = node.Attributes["onclick"]
-                                                    .Value
-                                                    .GetTextBetweenBrackets()
-                                                    .Split(",");
-                            
-                        var typeId = Convert.ToInt32
-                        (
-                            onClickParameters.ElementAt(index: 1)
-                        );
-
-                        var id = Convert.ToInt32
-                        (
-                            onClickParameters.ElementAt(index: 2)
-                        );
-
-                        return new Teacher()
-                        {
-                            Id = id,
-                            Shortname = node.InnerText,
-                            TypeId = typeId
-                        };
-                    })
+                    nodes.Select
+                    (
+                        node => node.ToTeacher()
+                    )
                     .ToList()
                 );
             }
@@ -300,53 +236,10 @@ namespace ScheduleBot.Parser
             if (dayNode != null)
             {
                 var lessons = dayNode.SelectNodes(".//ul/*[contains(@class, 'lesson add_background')]")?
-                                     .Select(node =>
-                                     {
-                                         var number = node.SelectNodes(".//*[contains(@class, 'number')]")
-                                                          .Nodes()
-                                                          .FirstOrDefault()
-                                                          .InnerText;
-
-                                         var title = node.SelectNodes(".//*[contains(@class, 'name')]")
-                                                         .Nodes()
-                                                         .FirstOrDefault()
-                                                         .InnerText;
-
-                                         var timeRange = node.SelectNodes(".//*[contains(@class, 'time')]")
-                                                             .Nodes()
-                                                             .FirstOrDefault()
-                                                             .InnerText;
-
-                                         var type = node.SelectNodes(".//*[contains(@class, 'type')]")
-                                                        .Nodes()
-                                                        .LastOrDefault()
-                                                        .InnerText
-                                                        .Trim();
-
-                                         var classroomNumber = node.SelectNodes(".//*[contains(@class, 'cab')]")
-                                                                   .Nodes()
-                                                                   .FirstOrDefault()
-                                                                   .InnerText;
-
-                                         var teachers = node.SelectNodes(".//*[contains(@class, 'prep')]")
-                                                            .Nodes()
-                                                            .SelectMany(node => node.ChildNodes)
-                                                            .Select
-                                                            (
-                                                                node => node.InnerText.Replace("(", " (")
-                                                            )
-                                                            .ToList();
-
-                                         return new Lesson
-                                         {
-                                             Number = number,
-                                             Title = title,
-                                             TimeRange = timeRange,
-                                             Type = type,
-                                             ClassroomNumber = classroomNumber,
-                                             Teachers = teachers
-                                         };
-                                     })
+                                     .Select
+                                     (
+                                         node => node.ToLesson()
+                                     )
                                      .ToList();
 
                 if (lessons != null)

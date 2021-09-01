@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace ScheduleBot.Parser.Extensions
 {
@@ -6,14 +7,11 @@ namespace ScheduleBot.Parser.Extensions
     {
         public static string GetTextBetweenBrackets(this string text)
         {
-            var textBetweenBrackets = string.Concat
-            (
-                text.SkipWhile(symbol => !symbol.Equals('('))
-                    .Skip(count: 1)
-                    .TakeWhile(symbol => !symbol.Equals(')'))
-            );
-
-            return textBetweenBrackets;
+            return Regex.Match(text, @"\(([\s\S]+?)\)")
+                        .Groups
+                        .Values
+                        .LastOrDefault()
+                        .Value;
         }
 
         public static string AsInSentences(this string text)
