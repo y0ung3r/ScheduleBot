@@ -43,8 +43,7 @@ namespace ScheduleBot.Extensions
                 )
                 .Any
                 (
-                    pattern => message.Trim()
-                                      .Contains(pattern)
+                    pattern => Regex.IsMatch(message, $@"^$|\{pattern}")
                 );
             }
 
