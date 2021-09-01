@@ -5,7 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Group = ScheduleBot.Parser.Models.Group;
 
 namespace ScheduleBot.Parser
 {
@@ -71,7 +73,7 @@ namespace ScheduleBot.Parser
                                                        .GetTextBetweenBrackets()
                                                        .Split(",");
 
-                           var type = Convert.ToInt32
+                           var typeId = Convert.ToInt32
                            (
                                onClickParameters.ElementAt(index: 1)
                            );
@@ -84,7 +86,7 @@ namespace ScheduleBot.Parser
                            return new Group()
                            {
                                Id = id,
-                               TypeId = type,
+                               TypeId = typeId,
                                Title = node.InnerText
                            };
                        })
@@ -105,7 +107,14 @@ namespace ScheduleBot.Parser
             foreach (var faculty in faculties)
             {
                 var groups = await ParseGroupsAsync(faculty.Id);
-                var group = groups.FirstOrDefault(group => group.Title.Equals(groupTitle));
+                var groupTitleInUpperCase = groupTitle.ToUpper();
+
+                var group = groups.FirstOrDefault
+                (
+                    group => group.Title
+                                  .ToUpper()
+                                  .Equals(groupTitleInUpperCase)
+                );
 
                 if (group is not null)
                 {
@@ -114,6 +123,101 @@ namespace ScheduleBot.Parser
             }
 
             return default;
+        }
+
+        public async Task<ICollection<Letter>> ParseLettersAsync()
+        {
+            var page = await _restClient.CreateHtmlDocumentAsync
+            (
+                ParserRoutes.GetLettersUri()
+            );
+
+            return page.DocumentNode
+                       .SelectNodes(".//*[contains(@id, 'letter')]")
+                       .Select(node =>
+                       {
+                           var onClickParameter = node.Attributes["onclick"]
+                                                      .Value
+                                                      .GetTextBetweenBrackets();
+
+                           var index = Convert.ToInt32(onClickParameter);
+                           var symbol = char.Parse(node.InnerText);
+
+                           return new Letter()
+                           {
+                               Index = index,
+                               Symbol = symbol
+                           };
+                       })
+                       .ToList();
+        }
+
+        public async Task<ICollection<Teacher>> ParseTeachersAsync(string filterText = default)
+        {
+            var letters = await ParseLettersAsync();
+            var teachers = new List<Teacher>();
+
+            foreach (var letter in letters)
+            {
+                var page = await _restClient.CreateHtmlDocumentAsync
+                (
+                    ParserRoutes.GetTeachersUri(letter.Index)
+                );
+
+                var nodes = page.DocumentNode
+                                .SelectNodes(".//*[contains(@class, 'prep_list_col')]/*[contains(@class, 'prep_name')]")
+                                .Where(node =>
+                                {
+                                    var onClickParameters = node.Attributes["onclick"]
+                                                                .Value
+                                                                .GetTextBetweenBrackets();
+
+                                    return !Regex.IsMatch(onClickParameters, ",{2,}");
+                                });
+
+                if (!string.IsNullOrWhiteSpace(filterText))
+                {
+                    var filterTextInUpperCase = filterText.ToUpper();
+
+                    nodes.Where
+                    (
+                        node => node.InnerText
+                                    .ToUpper()
+                                    .Contains(filterTextInUpperCase)
+                    );
+                }
+
+                teachers.AddRange
+                (
+                    nodes.Select(node =>
+                    {
+                        var onClickParameters = node.Attributes["onclick"]
+                                                    .Value
+                                                    .GetTextBetweenBrackets()
+                                                    .Split(",");
+                            
+                        var typeId = Convert.ToInt32
+                        (
+                            onClickParameters.ElementAt(index: 1)
+                        );
+
+                        var id = Convert.ToInt32
+                        (
+                            onClickParameters.ElementAt(index: 2)
+                        );
+
+                        return new Teacher()
+                        {
+                            Id = id,
+                            Shortname = node.InnerText,
+                            TypeId = typeId
+                        };
+                    })
+                    .ToList()
+                );
+            }
+
+            return teachers;
         }
 
         public async Task<ICollection<StudyDay>> ParseStudyDaysAsync(Group group, DateTime startDateTime, DateTime endDateTime)

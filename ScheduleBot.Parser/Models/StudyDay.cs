@@ -4,12 +4,24 @@ using System.Text;
 
 namespace ScheduleBot.Parser.Models
 {
+    /// <summary>
+    /// Учебный день
+    /// </summary>
     public class StudyDay
     {
+        /// <summary>
+        /// Номер учебной недели
+        /// </summary>
         public int WeekNumber { get; set; }
 
+        /// <summary>
+        /// Дата
+        /// </summary>
         public DateTime Date { get; set; }
 
+        /// <summary>
+        /// Занятия, которые проводятся в этот день
+        /// </summary>
         public ICollection<Lesson> Lessons { get; set; }
 
         public StudyDay()
@@ -17,12 +29,16 @@ namespace ScheduleBot.Parser.Models
             Lessons = new List<Lesson>();
         }
 
+        /// <summary>
+        /// Формирует и возвращает HTML-код для текущего учебного дня
+        /// </summary>
+        /// <returns>HTML-код</returns>
         public string ToHTML()
         {
             var stringBuilder = new StringBuilder();
 
             stringBuilder.AppendLine($"<b>Расписание на {Date:dd.MM.yyyy (dddd)}:</b>")
-                             .AppendLine();
+                         .AppendLine();
 
             if (Lessons.Count > 0)
             {

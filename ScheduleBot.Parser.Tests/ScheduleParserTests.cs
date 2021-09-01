@@ -65,13 +65,18 @@ namespace ScheduleBot.Parser.Tests
         [TestCase("ПМИ31")]
         [TestCase("ПМИ41")]
         [TestCase("МИ11")]
+        [TestCase("аис21")]
         public async Task GroupParsingByTitleTestAsync(string groupTitle)
         {
             LoadHtmlFromFile("GroupsPage");
 
             var group = await _scheduleParser.ParseGroupAsync(groupTitle);
 
-            Assert.AreEqual(group.Title, groupTitle);
+            Assert.AreEqual
+            (
+                group.Title.ToUpper(), 
+                groupTitle.ToUpper()
+            );
         }
 
         [Test]
