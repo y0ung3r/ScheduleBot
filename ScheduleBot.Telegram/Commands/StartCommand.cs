@@ -24,29 +24,27 @@ namespace ScheduleBot.Telegram.Commands
         {
             var stringBuilder = new StringBuilder();
 
-            stringBuilder.AppendLine("Чтобы обеспечить себе быстрый доступ к расписанию, используйте команду /bind.")
-                         .AppendLine("Также Вы можете добавить бота в свою Telegram-группу.")
+            stringBuilder.AppendLine("<b>С помощью данного бота Вы можете:</b>")
+                         .AppendLine("• обеспечить себе быстрый доступ к расписанию, используя короткую команду /bind;")
+                         .AppendLine("• добавить бота в беседу группы, чтобы делиться расписанием с одногруппниками;")
+                         .AppendLine("• использовать нижеуказанные команды.")
                          .AppendLine()
-                         .AppendLine("<i>Бот не хранит Ваши личные данные!</i>")
+                         .AppendLine("<b>/settings</b> - получить текущие настройки факультета и группы")
                          .AppendLine()
-                         .AppendLine("<b>Вы можете использовать следующие команды:</b>")
+                         .AppendLine("<b>/bind</b> - изменить настройки факультета и группы")
                          .AppendLine()
-                         .AppendLine("1. /settings - получить текущие настройки факультета и группы")
+                         .AppendLine("<b>/schedule</b> - получить актуальное расписание по заданной учебной неделе")
                          .AppendLine()
-                         .AppendLine("2. /bind - изменить настройки факультета и группы")
+                         .AppendLine("<b>/schedule <i>[дата (в любом формате)]</i></b> - получить актуальное расписание по заданному учебному дню")
+                         .AppendLine("<i>Пример использования:</i> <code>/schedule 01.09.2021</code>")
                          .AppendLine()
-                         .AppendLine("3. /schedule - получить актуальное расписание по заданной учебной неделе")
+                         .AppendLine("<b>/schedule <i>[дата (в любом формате)]</i> <i>[название группы]</i></b> - получить актуальное расписание по заданному учебному дню")
+                         .AppendLine("<i>Пример использования:</i> <code>/schedule 2021-9-1 ПМИ31</code>")
                          .AppendLine()
-                         .AppendLine("4. /schedule <i>[дата (в любом формате)]</i> - получить актуальное расписание по заданному учебному дню")
-                         .AppendLine("Пример: <code>/schedule 01.09.2021</code>")
+                         .AppendLine("<b>/tomorrow</b> - получить расписание на завтра")
                          .AppendLine()
-                         .AppendLine("5. /schedule <i>[дата (в любом формате)]</i> <i>[название группы]</i> - получить актуальное расписание по заданному учебному дню")
-                         .AppendLine("Пример: <code>/schedule 2021-9-1 ПМИ31</code>")
-                         .AppendLine()
-                         .AppendLine("6. /tomorrow - получить расписание на завтра")
-                         .AppendLine()
-                         .AppendLine("7. /tomorrow <i>[название группы]</i> - получить расписание на завтра для указанной группы.")
-                         .AppendLine("Пример: <code>/tomorrow ХИМ21</code>");
+                         .AppendLine("<b>/tomorrow <i>[название группы]</i></b> - получить расписание на завтра для указанной группы.")
+                         .AppendLine("<i>Пример использования:</i> <code>/tomorrow ХИМ21</code>");
 
             var chatId = message.Chat.Id;
 
