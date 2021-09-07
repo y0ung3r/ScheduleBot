@@ -12,7 +12,7 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
-namespace ScheduleBot.Telegram.Commands
+namespace ScheduleBot.Telegram.Handlers.Commands
 {
     [CommandText("/schedule")]
     public class ScheduleCommand : TelegramCommandBase
@@ -21,17 +21,17 @@ namespace ScheduleBot.Telegram.Commands
         private readonly ITelegramBotClient _client;
         private readonly IScheduleParser _scheduleParser;
         private readonly IChatParametersService _chatParametersService;
-        private readonly ICallbackQueryListener _callbackQueryListener;
+        private readonly IStepRequestStorage _stepRequestStorage;
         private readonly IWeekDatesProvider _weekDatesProvider;
 
         public ScheduleCommand(ILogger<ScheduleCommand> logger, ITelegramBotClient client, IScheduleParser scheduleParser,
-            IChatParametersService chatParametersService, ICallbackQueryListener callbackQueryListener, IWeekDatesProvider weekDatesProvider)
+            IChatParametersService chatParametersService, IStepRequestStorage stepRequestStorage, IWeekDatesProvider weekDatesProvider)
         {
             _logger = logger;
             _client = client;
             _scheduleParser = scheduleParser;
             _chatParametersService = chatParametersService;
-            _callbackQueryListener = callbackQueryListener;
+            _stepRequestStorage = stepRequestStorage;
             _weekDatesProvider = weekDatesProvider;
         }
 
@@ -80,7 +80,7 @@ namespace ScheduleBot.Telegram.Commands
                     replyMarkup: DateTime.Today.ToWeekDatesKeyboard(_weekDatesProvider)
                 );
 
-                _callbackQueryListener.RegisterRequest
+                _stepRequestStorage.PushRequest
                 (
                     request,
                     HandleIncomingWeekAsync
@@ -90,13 +90,14 @@ namespace ScheduleBot.Telegram.Commands
             _logger?.LogInformation("Schedule command processed");
         }
 
-        private async Task HandleIncomingWeekAsync(Message request, CallbackQuery response, params object[] payload)
+        private async Task HandleIncomingWeekAsync(Message request, Update response, params object[] payload)
         {
-            var chatId = response.Message.Chat.Id;
+            var callbackQuery = response.CallbackQuery;
+            var chatId = request.Chat.Id;
 
             var weekDates = _weekDatesProvider.GetCurrentWeekDates
             (
-                DateTime.Parse(response.Data)
+                DateTime.Parse(callbackQuery.Data)
             );
 
             var inlineKeyboard = weekDates.ToInlineKeyboard
@@ -124,19 +125,20 @@ namespace ScheduleBot.Telegram.Commands
                 replyMarkup: inlineKeyboard
             );
 
-            _callbackQueryListener.RegisterRequest
+            _stepRequestStorage.PushRequest
             (
                 nextRequest,
                 HandleIncomingDateAsync
             );
 
-            await _client.AnswerCallbackQueryAsync(response.Id);
+            await _client.AnswerCallbackQueryAsync(callbackQuery.Id);
         }
 
-        private async Task HandleIncomingDateAsync(Message request, CallbackQuery response, params object[] payload)
+        private async Task HandleIncomingDateAsync(Message request, Update response, params object[] payload)
         {
-            var chatId = response.Message.Chat.Id;
-            var data = response.Data.Split(" ").FirstOrDefault();
+            var callbackQuery = response.CallbackQuery;
+            var chatId = request.Chat.Id;
+            var data = callbackQuery.Data.Split(" ").FirstOrDefault();
 
             if (DateTime.TryParse(data, out var dateTime))
             {
@@ -162,7 +164,7 @@ namespace ScheduleBot.Telegram.Commands
                 }
             }
 
-            await _client.AnswerCallbackQueryAsync(response.Id);
+            await _client.AnswerCallbackQueryAsync(callbackQuery.Id);
         }
 
         private async Task SendScheduleAsync(long chatId, DateTime dateTime)
@@ -183,7 +185,7 @@ namespace ScheduleBot.Telegram.Commands
                     replyMarkup: dateTime.ToNavigationKeyboard()
                 );
 
-                _callbackQueryListener.RegisterRequest
+                _stepRequestStorage.PushRequest
                 (
                     nextRequest,
                     HandleIncomingDateAsync
@@ -217,7 +219,7 @@ namespace ScheduleBot.Telegram.Commands
                     replyMarkup: dateTime.ToNavigationKeyboard()
                 );
 
-                _callbackQueryListener.RegisterRequest
+                _stepRequestStorage.PushRequest
                 (
                     nextRequest,
                     HandleIncomingDateAsync,

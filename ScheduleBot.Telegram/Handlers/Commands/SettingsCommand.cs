@@ -7,7 +7,7 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
-namespace ScheduleBot.Telegram.Commands
+namespace ScheduleBot.Telegram.Handlers.Commands
 {
     [CommandText("/settings")]
     public class SettingsCommand : TelegramCommandBase

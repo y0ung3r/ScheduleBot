@@ -15,13 +15,13 @@ namespace ScheduleBot.Telegram.LongPolling
     {
         private readonly ILogger<LongPollingService> _logger;
         private readonly ITelegramBotClient _client;
-        private readonly ICallbackQueryListener _callbackQueryListener;
+        private readonly IStepRequestStorage _stepRequestStorage;
 
-        public LongPollingService(ILogger<LongPollingService> logger, ITelegramBotClient client, ICallbackQueryListener callbackQueryListener)
+        public LongPollingService(ILogger<LongPollingService> logger, ITelegramBotClient client, IStepRequestStorage stepRequestStorage)
         {
             _logger = logger;
             _client = client;
-            _callbackQueryListener = callbackQueryListener;
+            _stepRequestStorage = stepRequestStorage;
         }
 
         public async Task ReceiveAsync(RequestDelegate rootHandler, CancellationToken cancellationToken = default)
@@ -60,19 +60,17 @@ namespace ScheduleBot.Telegram.LongPolling
 
                         if (update.Message is Message message)
                         {
-                            _callbackQueryListener.UnregisterRequest(message.Chat.Id);
+                            _stepRequestStorage.RemoveChatRequests(message.Chat.Id);
                         }
 
-                        var callbackQuery = update.CallbackQuery;
-
-                        if (callbackQuery is not null && _callbackQueryListener.GetRequestInfo(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId) is CallbackQueryRequestInfo requestInfo)
+                        if (update.GetChatId() is long chatId && update.GetRequestMessageId() is int requestMessageId && _stepRequestStorage.GetRequestInfo(chatId, requestMessageId) is StepRequestInfo requestInfo)
                         {
-                            _callbackQueryListener.UnregisterRequest(requestInfo.Message.Chat.Id);
+                            _stepRequestStorage.RemoveChatRequests(chatId);
 
                             await requestInfo.Callback
                             (
-                                request: requestInfo.Message, 
-                                response: callbackQuery, 
+                                request: requestInfo.Message,
+                                response: update,
                                 payload: requestInfo.Payload
                             );
                         }

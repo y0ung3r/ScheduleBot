@@ -39,6 +39,16 @@ namespace ScheduleBot.Telegram.Extensions
             };
         }
 
+        public static int? GetRequestMessageId(this Update update)
+        {
+            return update.Type switch
+            {
+                UpdateType.Message => update.Message.ReplyToMessage?.MessageId,
+                UpdateType.CallbackQuery => update.CallbackQuery.Message.MessageId,
+                _ => default(int?)
+            };
+        }
+
         public static bool IsCommand(this Update update)
         {
             return update.Message?

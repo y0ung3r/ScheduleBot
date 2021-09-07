@@ -10,7 +10,7 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
-namespace ScheduleBot.Telegram.Commands
+namespace ScheduleBot.Telegram.Handlers.Commands
 {
     [CommandText("/bind")]
     public class BindCommand : TelegramCommandBase
@@ -19,16 +19,16 @@ namespace ScheduleBot.Telegram.Commands
         private readonly ITelegramBotClient _client;
         private readonly IScheduleParser _scheduleParser;
         private readonly IChatParametersService _chatParametersService;
-        private readonly ICallbackQueryListener _callbackQueryListener;
+        private readonly IStepRequestStorage _stepRequestStorage;
 
         public BindCommand(ILogger<BindCommand> logger, ITelegramBotClient client, IScheduleParser scheduleParser,
-            IChatParametersService chatParametersService, ICallbackQueryListener callbackQueryListener)
+            IChatParametersService chatParametersService, IStepRequestStorage stepRequestStorage)
         {
             _logger = logger;
             _client = client;
             _scheduleParser = scheduleParser;
             _chatParametersService = chatParametersService;
-            _callbackQueryListener = callbackQueryListener;
+            _stepRequestStorage = stepRequestStorage;
         }
 
         protected override async Task HandleAsync(Message message, string[] arguments, RequestDelegate nextHandler)
@@ -55,7 +55,7 @@ namespace ScheduleBot.Telegram.Commands
                 replyMarkup: inlineKeyboard
             );
 
-            _callbackQueryListener.RegisterRequest
+            _stepRequestStorage.PushRequest
             (
                 request,
                 HandleIncomingFacultyAsync
@@ -64,12 +64,13 @@ namespace ScheduleBot.Telegram.Commands
             _logger?.LogInformation("Bind command processed");
         }
 
-        private async Task HandleIncomingFacultyAsync(Message request, CallbackQuery response, params object[] payload)
+        private async Task HandleIncomingFacultyAsync(Message request, Update response, params object[] payload)
         {
-            var chatId = response.Message.Chat.Id;
+            var callbackQuery = response.CallbackQuery;
+            var chatId = request.Chat.Id;
 
             var faculties = await _scheduleParser.ParseFacultiesAsync();
-            var facultyAbbreviation = response.Data;
+            var facultyAbbreviation = callbackQuery.Data;
             var faculty = faculties.FirstOrDefault(faculty => faculty.TitleAbbreviation.Equals(facultyAbbreviation));
 
             if (faculty is not null)
@@ -101,7 +102,7 @@ namespace ScheduleBot.Telegram.Commands
                     replyMarkup: inlineKeyboard
                 );
 
-                _callbackQueryListener.RegisterRequest
+                _stepRequestStorage.PushRequest
                 (
                     nextRequest,
                     HandleIncomingGroupAsync,
@@ -109,16 +110,17 @@ namespace ScheduleBot.Telegram.Commands
                 );
             }
 
-            await _client.AnswerCallbackQueryAsync(response.Id);
+            await _client.AnswerCallbackQueryAsync(callbackQuery.Id);
         }
 
-        private async Task HandleIncomingGroupAsync(Message request, CallbackQuery response, params object[] payload)
+        private async Task HandleIncomingGroupAsync(Message request, Update response, params object[] payload)
         {
             var facultyId = (int)payload.First();
-            var chatId = response.Message.Chat.Id;
+            var callbackQuery = response.CallbackQuery;
+            var chatId = request.Chat.Id;
 
             var groups = await _scheduleParser.ParseGroupsAsync(facultyId);
-            var groupTitle = response.Data;
+            var groupTitle = callbackQuery.Data;
             var group = groups.FirstOrDefault(group => group.Title.Equals(groupTitle));
 
             if (group is not null)
@@ -150,7 +152,7 @@ namespace ScheduleBot.Telegram.Commands
                 );
             }
 
-            await _client.AnswerCallbackQueryAsync(response.Id);
+            await _client.AnswerCallbackQueryAsync(callbackQuery.Id);
         }
     }
 }

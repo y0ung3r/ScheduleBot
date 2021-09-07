@@ -1,8 +1,8 @@
 ﻿using ScheduleBot.Extensions;
 using ScheduleBot.Interfaces;
-using ScheduleBot.Telegram.Commands;
 using ScheduleBot.Telegram.Extensions;
 using ScheduleBot.Telegram.Handlers;
+using ScheduleBot.Telegram.Handlers.Commands;
 using System;
 using System.Threading.Tasks;
 

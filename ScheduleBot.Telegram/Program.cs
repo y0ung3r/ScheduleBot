@@ -11,7 +11,7 @@ using ScheduleBot.Parser.Extensions;
 using ScheduleBot.Telegram.Configurations;
 using ScheduleBot.Telegram.Extensions;
 using ScheduleBot.Telegram.Handlers;
-using ScheduleBot.Telegram.Commands;
+using ScheduleBot.Telegram.Handlers.Commands;
 using System.Threading.Tasks;
 
 namespace ScheduleBot.Telegram

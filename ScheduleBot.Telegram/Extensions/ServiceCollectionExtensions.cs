@@ -29,7 +29,7 @@ namespace ScheduleBot.Telegram.Extensions
 
         public static IServiceCollection AddTelegramBotExtensions(this IServiceCollection services)
         {
-            services.TryAddSingleton<ICallbackQueryListener, CallbackQueryListener>();
+            services.TryAddSingleton<IStepRequestStorage, StepRequestStorage>();
             services.TryAddSingleton<ILongPollingService, LongPollingService>();
 
             return services;

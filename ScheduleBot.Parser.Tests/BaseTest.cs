@@ -2,7 +2,6 @@
 using Moq.AutoMock;
 using NUnit.Framework;
 using ScheduleBot.Parser.Interfaces;
-using ScheduleBot.Parser.Models;
 using System;
 using System.IO;
 using System.Net.Http;

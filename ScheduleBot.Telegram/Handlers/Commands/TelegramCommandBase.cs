@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
-namespace ScheduleBot.Telegram.Commands
+namespace ScheduleBot.Telegram.Handlers.Commands
 {
     public abstract class TelegramCommandBase : TelegramHandlerBase, ICommandHandler
     {
