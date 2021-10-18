@@ -30,7 +30,7 @@ namespace ScheduleBot.Telegram
                     })
                     .AddDbContext<BotContext>(options =>
                     {
-                        options.UseSqlServer(BotConfiguration.ConnectionString);
+                        options.UseSqlite(BotConfiguration.ConnectionString);
                     })
                     .AddUnitOfWork<UnitOfWork>()
                     .AddRepositories()

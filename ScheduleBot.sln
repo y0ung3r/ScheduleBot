@@ -22,7 +22,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ScheduleBot.Domain", "Sched
 		{F03E5696-A8E7-474D-96B6-B8FA68737881} = {F03E5696-A8E7-474D-96B6-B8FA68737881}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScheduleBot.Telegram.Tests", "ScheduleBot.Telegram.Tests\ScheduleBot.Telegram.Tests.csproj", "{6ADD2137-17C8-42F4-A161-57B268F57BCC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ScheduleBot.Telegram.Tests", "ScheduleBot.Telegram.Tests\ScheduleBot.Telegram.Tests.csproj", "{6ADD2137-17C8-42F4-A161-57B268F57BCC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScheduleBot.Tests", "ScheduleBot.Tests\ScheduleBot.Tests.csproj", "{529BF2DD-8CB4-44B4-AF38-1C7C1363A0E1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -58,6 +60,10 @@ Global
 		{6ADD2137-17C8-42F4-A161-57B268F57BCC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6ADD2137-17C8-42F4-A161-57B268F57BCC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6ADD2137-17C8-42F4-A161-57B268F57BCC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{529BF2DD-8CB4-44B4-AF38-1C7C1363A0E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{529BF2DD-8CB4-44B4-AF38-1C7C1363A0E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{529BF2DD-8CB4-44B4-AF38-1C7C1363A0E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{529BF2DD-8CB4-44B4-AF38-1C7C1363A0E1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

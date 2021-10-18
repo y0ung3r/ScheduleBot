@@ -16,10 +16,10 @@ namespace ScheduleBot.Extensions
             );
         }
 
-        public static IBranchBuilder UseBranch<TRequestHandler>(this IBranchBuilder builder, Predicate<object> predicate)
+        public static IBranchBuilder UseAnotherBranch<TRequestHandler>(this IBranchBuilder builder, Predicate<object> predicate)
             where TRequestHandler : IRequestHandler
         {
-            return builder.UseBranch
+            return builder.UseAnotherBranch
             (
                 predicate,
                 branchBuilder => branchBuilder.UseHandler<TRequestHandler>()
@@ -31,7 +31,7 @@ namespace ScheduleBot.Extensions
         {
             var serviceProvider = builder.ServiceProvider;
 
-            return builder.UseBranch<TCommandHandler>
+            return builder.UseAnotherBranch<TCommandHandler>
             (
                 request => serviceProvider.GetRequiredService<TCommandHandler>()
                                           .CanHandle(serviceProvider, request)

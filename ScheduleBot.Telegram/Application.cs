@@ -10,16 +10,16 @@ namespace ScheduleBot.Telegram
 {
     public class Application
     {
-        private readonly Func<RequestDelegate, IBot> _botFactory;
+        private readonly Func<RequestDelegate, IBot> _botFactoryMethod;
         private readonly IBranchBuilder _branchBuilder;
 
-        public Application(Func<RequestDelegate, IBot> botFactory, IBranchBuilder branchBuilder)
+        public Application(Func<RequestDelegate, IBot> botFactoryMethod, IBranchBuilder branchBuilder)
         {
-            _botFactory = botFactory;
+            _botFactoryMethod = botFactoryMethod;
             _branchBuilder = branchBuilder;
         }
 
-        private void ConfigureBranchBuilder()
+        private TelegramScheduleBot CreateTelegramScheduleBot()
         {
             _branchBuilder.UseHandler<TelegramExceptionHandler>()
                           .UseCommand<StartCommand>()
@@ -28,13 +28,8 @@ namespace ScheduleBot.Telegram
                           .UseCommand<ScheduleCommand>()
                           .UseCommand<TomorrowCommand>()
                           .UseHandler<MissingUpdateHandler>();
-        }
 
-        private TelegramScheduleBot CreateTelegramScheduleBot()
-        {
-            ConfigureBranchBuilder();
-
-            return (TelegramScheduleBot)_botFactory
+            return (TelegramScheduleBot)_botFactoryMethod
             (
                 _branchBuilder.Build()
             );

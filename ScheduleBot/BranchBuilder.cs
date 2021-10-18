@@ -5,6 +5,7 @@ using ScheduleBot.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace ScheduleBot
 {
@@ -28,17 +29,17 @@ namespace ScheduleBot
             return this;
         }
 
-        public IBranchBuilder UseBranch(Predicate<object> predicate, Action<IBranchBuilder> configure)
+        public IBranchBuilder UseAnotherBranch(Predicate<object> predicate, Action<IBranchBuilder> configure)
         {
-            var branchBuilder = ServiceProvider.GetRequiredService<IBranchBuilder>();
-            configure(branchBuilder);
+            var anotherBranchBuilder = ServiceProvider.GetRequiredService<IBranchBuilder>();
+            configure(anotherBranchBuilder);
 
-            var branch = branchBuilder.Build();
+            var anotherBranch = anotherBranchBuilder.Build();
             var internalHandlerFactory = ServiceProvider.GetRequiredService<Func<RequestDelegate, Predicate<object>, InternalHandler>>();
 
             return UseHandler
             (
-                internalHandlerFactory(branch, predicate)
+                internalHandlerFactory(anotherBranch, predicate)
             );
         }
 
