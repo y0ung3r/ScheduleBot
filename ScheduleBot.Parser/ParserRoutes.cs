@@ -1,21 +1,19 @@
-﻿using System;
+﻿using Flurl;
 
 namespace ScheduleBot.Parser
 {
     public static class ParserRoutes
     {
-        public static string BaseUrl => "http://edu.strbsu.ru";
+        public static Url BaseUrl => "http://edu.strbsu.ru";
 
-        public static string ListUrl => $"{BaseUrl}/php/getList.php";
+        public static Url ListUrl => $"{BaseUrl}/php/getList.php";
 
-        public static Uri GetBaseUri() => new Uri(BaseUrl);
+        public static Url LettersUrl => $"{ListUrl}?prepList=1";
 
-        public static Uri GetGroupsUri(int facultyId) => new Uri($"{ListUrl}?faculty={facultyId}");
+        public static Url LessonsUrl => $"{BaseUrl}/php/getShedule.php";
 
-        public static Uri GetLettersUri() => new Uri($"{ListUrl}?prepList=1");
+        public static Url GetGroupsUrl(int facultyId) => $"{ListUrl}?faculty={facultyId}";
 
-        public static Uri GetTeachersUri(int letterIndex) => new Uri($"{ListUrl}?letter={letterIndex}");
-
-        public static Uri GetLessonsUri() => new Uri($"{BaseUrl}/php/getShedule.php");
+        public static Url GetTeachersUrl(int letterIndex) => $"{ListUrl}?letter={letterIndex}";
     }
 }

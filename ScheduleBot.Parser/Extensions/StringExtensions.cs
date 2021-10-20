@@ -50,15 +50,12 @@ namespace ScheduleBot.Parser.Extensions
                         word =>
                         {
                             var symbol = word.First();
-
                             var upperSymbol = char.ToUpper
                             (
                                 symbol
                             );
 
-                            var isAnd = splitBySpaces.FirstOrDefault(splitWord => splitWord.Equals(word) && splitWord.Equals("и")) != null;
-
-                            return (isAnd) ? symbol : upperSymbol;
+                            return splitBySpaces.Any(splitWord => splitWord.Equals(word) && splitWord.Equals("и")) ? symbol : upperSymbol;
                         }
                     )
                 );

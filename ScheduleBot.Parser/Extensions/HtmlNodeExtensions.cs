@@ -19,7 +19,7 @@ namespace ScheduleBot.Parser.Extensions
                 onClickParameters.First()
             );
 
-            return new Faculty()
+            return new Faculty
             {
                 Id = id,
                 Title = node.InnerText
@@ -43,7 +43,7 @@ namespace ScheduleBot.Parser.Extensions
                 onClickParameters.ElementAt(index: 2)
             );
 
-            return new Group()
+            return new Group
             {
                 Id = id,
                 TypeId = typeId,
@@ -60,7 +60,7 @@ namespace ScheduleBot.Parser.Extensions
             var index = Convert.ToInt32(onClickParameter);
             var symbol = char.Parse(node.InnerText);
 
-            return new Letter()
+            return new Letter
             {
                 Index = index,
                 Symbol = symbol
@@ -84,7 +84,7 @@ namespace ScheduleBot.Parser.Extensions
                 onClickParameters.ElementAt(index: 2)
             );
 
-            return new Teacher()
+            return new Teacher
             {
                 Id = id,
                 Shortname = node.InnerText,

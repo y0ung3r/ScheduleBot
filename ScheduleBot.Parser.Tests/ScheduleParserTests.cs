@@ -13,11 +13,14 @@ namespace ScheduleBot.Parser.Tests
         [TestCase("Факультет математики и информационных технологий")]
         public async Task FacultiesParsingTestAsync(string facultyTitle)
         {
+            // Arrange
             LoadHtmlFromFile("FacultiesPage");
 
+            // Act
             var faculties = await _scheduleParser.ParseFacultiesAsync();
             var faculty = faculties.FirstOrDefault(faculty => faculty.Title.Contains(facultyTitle));
 
+            // Assert
             Assert.IsNotNull(faculty);
         }
 
@@ -27,10 +30,13 @@ namespace ScheduleBot.Parser.Tests
         [TestCase(6, "Исторический факультет")]
         public async Task FacultyParsingTestAsync(int facultyId, string facultyTitle)
         {
+            // Arrange
             LoadHtmlFromFile("FacultiesPage");
 
+            // Act
             var faculty = await _scheduleParser.ParseFacultyAsync(facultyId);
 
+            // Assert
             Assert.AreEqual(faculty.Title, facultyTitle);
         }
 
@@ -39,11 +45,14 @@ namespace ScheduleBot.Parser.Tests
         [TestCase(8, "ХИМ11", "GroupsPage (ЕНФ)")]
         public async Task GroupsParsingTestAsync(int facultyId, string groupTitle, string filepath)
         {
+            // Arrange
             LoadHtmlFromFile(filepath);
 
+            // Act
             var groups = await _scheduleParser.ParseGroupsAsync(facultyId);
             var group = groups.FirstOrDefault(group => group.Title.Equals(groupTitle));
 
+            // Assert
             Assert.IsNotNull(group);
         }
 
@@ -53,10 +62,13 @@ namespace ScheduleBot.Parser.Tests
         [TestCase(7, 16, 2, "АИС21")]
         public async Task GroupParsingTestAsync(int facultyId, int groupId, int groupTypeId, string groupTitle)
         {
+            // Arrange
             LoadHtmlFromFile("GroupsPage (ФМиИТ)");
 
+            // Act
             var group = await _scheduleParser.ParseGroupAsync(facultyId, groupId, groupTypeId);
 
+            // Assert
             Assert.AreEqual(group.Title, groupTitle);
         }
 
@@ -68,10 +80,13 @@ namespace ScheduleBot.Parser.Tests
         [TestCase("аис21")]
         public async Task GroupParsingByTitleTestAsync(string groupTitle)
         {
+            // Arrange
             LoadHtmlFromFile("GroupsPage");
 
+            // Act
             var group = await _scheduleParser.ParseGroupAsync(groupTitle);
 
+            // Assert
             Assert.AreEqual
             (
                 group.Title.ToUpper(), 
@@ -86,8 +101,10 @@ namespace ScheduleBot.Parser.Tests
             DateTime startDateTime, string startLessonTitle, DateTime endDateTime, 
             string penultimateLessonTitle, DateTime penultimateDateTime)
         {
+            // Arrange
             LoadHtmlFromFile("StudyDaysPage");
 
+            // Act
             var group = await _scheduleParser.ParseGroupAsync(facultyId, groupId, groupTypeId);
             var studyDays = await _scheduleParser.ParseStudyDaysAsync(group, startDateTime, endDateTime);
             var startStudyDay = studyDays.FirstOrDefault();
@@ -95,6 +112,7 @@ namespace ScheduleBot.Parser.Tests
             var penultimateStudyDay = studyDays.SkipLast(count: 1).LastOrDefault();
             var penultimateLesson = penultimateStudyDay.Lessons.FirstOrDefault();
 
+            // Assert
             Assert.IsNotNull(startLesson);
             Assert.IsNotNull(penultimateLesson);
             Assert.AreEqual(startStudyDay.Date, startDateTime);
@@ -109,12 +127,15 @@ namespace ScheduleBot.Parser.Tests
         public async Task StudyDayParsingTestAsync(int facultyId, int groupId, int groupTypeId, 
             DateTime dateTime, string lessonTitle, string lessonType)
         {
+            // Arrange
             LoadHtmlFromFile("StudyDaysPage");
 
+            // Act
             var group = await _scheduleParser.ParseGroupAsync(facultyId, groupId, groupTypeId);
             var studyDay = await _scheduleParser.ParseStudyDayAsync(group, dateTime);
             var studyDayLesson = studyDay.Lessons.FirstOrDefault(lesson => lesson.Title.Equals(lessonTitle));
 
+            // Assert
             Assert.IsNotNull(studyDayLesson);
             Assert.AreEqual(studyDayLesson.Title, lessonTitle);
             Assert.AreEqual(studyDayLesson.Type, lessonType);

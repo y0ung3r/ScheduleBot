@@ -9,7 +9,6 @@ namespace ScheduleBot.Parser.Extensions
         public static IServiceCollection AddScheduleParser<TScheduleParser>(this IServiceCollection services)
             where TScheduleParser : IScheduleParser
         {
-            services.TryAddSingleton<IRestClient, RestClient>();
             services.TryAddSingleton<IScheduleParser, ScheduleParser>();
 
             return services;

@@ -1,22 +1,15 @@
-﻿using Moq;
+﻿using Flurl.Http.Testing;
 using Moq.AutoMock;
 using NUnit.Framework;
 using ScheduleBot.Parser.Interfaces;
 using System;
 using System.IO;
-using System.Net.Http;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace ScheduleBot.Parser.Tests
 {
     public abstract class BaseTest
     {
-        private readonly AutoMocker _mocker;
-
-        protected string _html;
-        protected IScheduleParser _scheduleParser;
-
         public BaseTest()
         {
             _mocker = new AutoMocker();
@@ -25,31 +18,7 @@ namespace ScheduleBot.Parser.Tests
         [SetUp]
         public void Setup()
         {
-            _mocker.Setup<IRestClient, Task<string>>
-            (
-                restClient => restClient.GetAsync
-                (
-                    It.IsAny<Uri>()
-                )
-            )
-            .ReturnsAsync
-            (
-                () => _html
-            );
-
-            _mocker.Setup<IRestClient, Task<string>>
-            (
-                restClient => restClient.PostAsync
-                (
-                    It.IsAny<Uri>(),
-                    It.IsAny<HttpContent>()
-                )
-            )
-            .ReturnsAsync
-            (
-                () => _html
-            );
-
+            _httpTest = new HttpTest();
             _scheduleParser = _mocker.CreateInstance<ScheduleParser>();
         }
 
@@ -62,13 +31,18 @@ namespace ScheduleBot.Parser.Tests
                 throw new FileNotFoundException(path);
             }
 
-            _html = File.ReadAllText(path, Encoding.UTF8);
+            var html = File.ReadAllText(path, Encoding.UTF8);
+            _httpTest.RespondWith(html);
         }
 
         [TearDown]
         public void Cleanup()
         {
-            _html = null;
+            _httpTest.Dispose();
         }
+
+        protected IScheduleParser _scheduleParser;
+        private HttpTest _httpTest;
+        private readonly AutoMocker _mocker;
     }
 }

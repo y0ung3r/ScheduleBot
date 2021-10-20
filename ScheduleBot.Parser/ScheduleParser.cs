@@ -1,4 +1,4 @@
-﻿using HtmlAgilityPack;
+﻿using Flurl.Http;
 using ScheduleBot.Parser.Extensions;
 using ScheduleBot.Parser.Interfaces;
 using ScheduleBot.Parser.Models;
@@ -14,19 +14,11 @@ namespace ScheduleBot.Parser
 {
     public class ScheduleParser : IScheduleParser
     {
-        private readonly IRestClient _restClient;
-
-        public ScheduleParser(IRestClient restClient)
-        {
-            _restClient = restClient;
-        }
-
         public async Task<ICollection<Faculty>> ParseFacultiesAsync()
         {
-            var page = await _restClient.CreateHtmlDocumentAsync
-            (
-                ParserRoutes.GetBaseUri()
-            );
+            var page = await ParserRoutes.BaseUrl
+                                         .GetStringAsync()
+                                         .ToHtmlDocumentAsync();
 
             return page.DocumentNode
                        .SelectNodes(".//*[contains(@class, 'menu')]/*[contains(@class, 'red')]")
@@ -46,10 +38,9 @@ namespace ScheduleBot.Parser
 
         public async Task<ICollection<Group>> ParseGroupsAsync(int facultyId)
         {
-            var page = await _restClient.CreateHtmlDocumentAsync
-            (
-                ParserRoutes.GetGroupsUri(facultyId)
-            );
+            var page = await ParserRoutes.GetGroupsUrl(facultyId)
+                                         .GetStringAsync()
+                                         .ToHtmlDocumentAsync();
 
             return page.DocumentNode
                        .SelectNodes(".//ul/li/a")
@@ -94,10 +85,9 @@ namespace ScheduleBot.Parser
 
         public async Task<ICollection<Letter>> ParseLettersAsync()
         {
-            var page = await _restClient.CreateHtmlDocumentAsync
-            (
-                ParserRoutes.GetLettersUri()
-            );
+            var page = await ParserRoutes.LettersUrl
+                                         .GetStringAsync()
+                                         .ToHtmlDocumentAsync();
 
             return page.DocumentNode
                        .SelectNodes(".//*[contains(@id, 'letter')]")
@@ -115,10 +105,9 @@ namespace ScheduleBot.Parser
 
             foreach (var letter in letters)
             {
-                var page = await _restClient.CreateHtmlDocumentAsync
-                (
-                    ParserRoutes.GetTeachersUri(letter.Index)
-                );
+                var page = await ParserRoutes.GetTeachersUrl(letter.Index)
+                                             .GetStringAsync()
+                                             .ToHtmlDocumentAsync();
 
                 var nodes = page.DocumentNode
                                 .SelectNodes(".//*[contains(@class, 'prep_list_col')]/*[contains(@class, 'prep_name')]")
@@ -160,7 +149,7 @@ namespace ScheduleBot.Parser
         {
             if (startDateTime > endDateTime)
             {
-                throw new ArgumentException($"\"{nameof(startDateTime)}\" can be earlier than \"{nameof(endDateTime)}\"");
+                throw new ArgumentException($"\"{nameof(startDateTime)}\" can not be earlier than \"{nameof(endDateTime)}\"");
             }
 
             var studyDays = new List<StudyDay>();
@@ -211,11 +200,10 @@ namespace ScheduleBot.Parser
                 }
             );
 
-            var page = await _restClient.CreateHtmlDocumentAsync
-            (
-                ParserRoutes.GetLessonsUri(),
-                content
-            );
+            var page = await ParserRoutes.LessonsUrl
+                                         .PostAsync(content)
+                                         .ReceiveString()
+                                         .ToHtmlDocumentAsync();
 
             var dayNode = page.DocumentNode
                               .SelectNodes(".//*[contains(@class, 'day')]")
