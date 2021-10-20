@@ -5,6 +5,11 @@ using System.Threading.Tasks;
 
 namespace ScheduleBot.Parser.Interfaces
 {
+    /// <summary>
+    /// Определяет методы для парсинга сайта с расписанием
+    /// /
+    /// Defines methods for parsing schedule website
+    /// </summary>
     public interface IScheduleParser
     {
         Task<ICollection<Faculty>> ParseFacultiesAsync();
@@ -15,7 +20,7 @@ namespace ScheduleBot.Parser.Interfaces
 
         Task<Group> ParseGroupAsync(int facultyId, int groupId, int groupTypeId);
 
-        Task<Group> ParseGroupAsync(string groupTitle );
+        Task<Group> ParseGroupAsync(string groupTitle);
 
         Task<ICollection<Letter>> ParseLettersAsync();
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ScheduleBot.Parser.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -7,7 +8,7 @@ namespace ScheduleBot.Parser.Models
     /// <summary>
     /// Учебный день
     /// </summary>
-    public class StudyDay
+    public class StudyDay : IHtmlMarkup
     {
         /// <summary>
         /// Номер учебной недели
