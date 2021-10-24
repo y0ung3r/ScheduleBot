@@ -1,4 +1,5 @@
-﻿using ScheduleBot.Handlers.Interfaces;
+﻿using BotFramework;
+using BotFramework.Handlers.Interfaces;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
 

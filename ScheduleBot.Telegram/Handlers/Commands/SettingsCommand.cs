@@ -1,5 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
-using ScheduleBot.Attributes;
+﻿using BotFramework;
+using BotFramework.Attributes;
+using Microsoft.Extensions.Logging;
 using ScheduleBot.Domain.Interfaces;
 using System.Text;
 using System.Threading.Tasks;

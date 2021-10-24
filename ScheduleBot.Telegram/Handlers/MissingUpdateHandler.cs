@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using BotFramework;
+using Microsoft.Extensions.Logging;
 using ScheduleBot.Telegram.Extensions;
 using System.Threading.Tasks;
 using Telegram.Bot;

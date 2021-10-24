@@ -1,5 +1,6 @@
-﻿using ScheduleBot.Extensions;
-using ScheduleBot.Interfaces;
+﻿using BotFramework;
+using BotFramework.Interfaces;
+using BotFramework.Extensions;
 using ScheduleBot.Telegram.Extensions;
 using ScheduleBot.Telegram.Handlers;
 using ScheduleBot.Telegram.Handlers.Commands;
@@ -10,12 +11,12 @@ namespace ScheduleBot.Telegram
 {
     public class Application
     {
-        private readonly Func<RequestDelegate, IBot> _botFactoryMethod;
+        private readonly IBotFactory _botFactory;
         private readonly IBranchBuilder _branchBuilder;
 
-        public Application(Func<RequestDelegate, IBot> botFactoryMethod, IBranchBuilder branchBuilder)
+        public Application(IBotFactory botFactory, IBranchBuilder branchBuilder)
         {
-            _botFactoryMethod = botFactoryMethod;
+            _botFactory = botFactory;
             _branchBuilder = branchBuilder;
         }
 
@@ -29,7 +30,7 @@ namespace ScheduleBot.Telegram
                           .UseCommand<TomorrowCommand>()
                           .UseHandler<MissingUpdateHandler>();
 
-            return (TelegramScheduleBot)_botFactoryMethod
+            return _botFactory.Create<TelegramScheduleBot>
             (
                 _branchBuilder.Build()
             );

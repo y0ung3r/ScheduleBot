@@ -1,11 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using BotFramework.Extensions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ScheduleBot.Data;
 using ScheduleBot.Data.Extensions;
 using ScheduleBot.Data.UnitOfWorks;
 using ScheduleBot.Domain.Extensions;
-using ScheduleBot.Extensions;
 using ScheduleBot.Parser;
 using ScheduleBot.Parser.Extensions;
 using ScheduleBot.Telegram.Configurations;
@@ -21,7 +21,7 @@ namespace ScheduleBot.Telegram
         public static async Task Main(string[] args)
         {
             var services = new ServiceCollection();
-
+            
             services.AddApplication()
                     .AddLogging(builder =>
                     {
@@ -38,7 +38,7 @@ namespace ScheduleBot.Telegram
                     .AddScheduleParser<ScheduleParser>()
                     .AddTelegramBotClient(BotConfiguration.ApiToken)
                     .AddTelegramBotExtensions()
-                    .AddBot<TelegramScheduleBot>()
+                    .AddBotFramework()
                     .AddHandler<TelegramExceptionHandler>()
                     .AddHandler<StartCommand>()
                     .AddHandler<SettingsCommand>()

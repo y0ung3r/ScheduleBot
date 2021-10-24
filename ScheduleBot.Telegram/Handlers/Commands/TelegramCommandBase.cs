@@ -1,8 +1,8 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using ScheduleBot.Extensions;
-using ScheduleBot.Handlers.Interfaces;
+﻿using BotFramework;
+using BotFramework.Handlers.Interfaces;
+using BotFramework.Extensions;
+using Microsoft.Extensions.DependencyInjection;
 using ScheduleBot.Telegram.Extensions;
-using ScheduleBot.Telegram.Handlers;
 using System;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -52,7 +52,7 @@ namespace ScheduleBot.Telegram.Handlers.Commands
                    update.IsCommand() && 
                    update.Message is Message message &&
                    message.IsContainsBotMention(botInfo) &&
-                   this.IsCommandTextContains(message.Text) &&
+                   this.TextIsCommandAlias(message.Text) &&
                    CanHandle(message);
         }
 
