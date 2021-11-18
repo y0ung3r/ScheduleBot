@@ -1,9 +1,7 @@
 ﻿using BotFramework;
 using BotFramework.Interfaces;
-using BotFramework.Extensions;
-using ScheduleBot.Telegram.Extensions;
 using ScheduleBot.Telegram.Handlers;
-using ScheduleBot.Telegram.Handlers.Commands;
+using ScheduleBot.Telegram.Interfaces;
 using System;
 using System.Threading.Tasks;
 
@@ -11,39 +9,26 @@ namespace ScheduleBot.Telegram
 {
     public class Application
     {
-        private readonly IBotFactory _botFactory;
+        private readonly Func<RequestDelegate, ITelegramBot> _botFactory;
         private readonly IBranchBuilder _branchBuilder;
 
-        public Application(IBotFactory botFactory, IBranchBuilder branchBuilder)
+        public Application(Func<RequestDelegate, ITelegramBot> botFactory, IBranchBuilder branchBuilder)
         {
             _botFactory = botFactory;
             _branchBuilder = branchBuilder;
-        }
 
-        private TelegramScheduleBot CreateTelegramScheduleBot()
-        {
-            _branchBuilder.UseHandler<TelegramExceptionHandler>()
-                          .UseCommand<StartCommand>()
-                          .UseCommand<SettingsCommand>()
-                          .UseCommand<BindCommand>()
-                          .UseCommand<ScheduleCommand>()
-                          .UseCommand<TomorrowCommand>()
-                          .UseHandler<MissingUpdateHandler>();
-
-            return _botFactory.Create<TelegramScheduleBot>
-            (
-                _branchBuilder.Build()
-            );
+            _branchBuilder.UseHandler<MissingRequestHandler>();
         }
 
         public async Task RunAsync()
         {
-            var bot = CreateTelegramScheduleBot();
+            var branch = _branchBuilder.Build();
+            var bot = _botFactory(branch);
             var botInfo = await bot.GetBotInfoAsync();
 
-            bot.Run();
+            await bot.RunAsync();
 
-            Console.Title = botInfo.GetBotName();
+            Console.Title = botInfo.Username;
             Console.ReadKey();
 
             bot.Stop();

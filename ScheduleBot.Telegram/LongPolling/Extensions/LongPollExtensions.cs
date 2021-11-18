@@ -4,11 +4,11 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ScheduleBot.Telegram.Extensions
+namespace ScheduleBot.Telegram.LongPolling.Extensions
 {
-    public static class LongPollingServiceExtensions
+    public static class LongPollExtensions
     {
-        public static void Receive(this ILongPollingService longPollingService, RequestDelegate rootHandler,
+        public static void Receive(this ILongPoll longPoll, RequestDelegate rootHandler,
             CancellationToken cancellationToken = default)
         {
             if (rootHandler is null)
@@ -18,7 +18,7 @@ namespace ScheduleBot.Telegram.Extensions
 
             Task.Run(async () =>
             {
-                await longPollingService.ReceiveAsync(rootHandler, cancellationToken);
+                await longPoll.ReceiveAsync(rootHandler, cancellationToken);
             });
         }
     }

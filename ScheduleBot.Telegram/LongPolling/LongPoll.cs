@@ -1,9 +1,6 @@
 ﻿using BotFramework;
 using Microsoft.Extensions.Logging;
-using ScheduleBot.Telegram.Extensions;
 using ScheduleBot.Telegram.LongPolling.Interfaces;
-using ScheduleBot.Telegram.StepHandler;
-using ScheduleBot.Telegram.StepHandler.Interfaces;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,17 +9,15 @@ using Telegram.Bot.Types;
 
 namespace ScheduleBot.Telegram.LongPolling
 {
-    public class LongPollingService : ILongPollingService
+    public class LongPoll : ILongPoll
     {
-        private readonly ILogger<LongPollingService> _logger;
+        private readonly ILogger<LongPoll> _logger;
         private readonly ITelegramBotClient _client;
-        private readonly IStepRequestStorage _stepRequestStorage;
 
-        public LongPollingService(ILogger<LongPollingService> logger, ITelegramBotClient client, IStepRequestStorage stepRequestStorage)
+        public LongPoll(ILogger<LongPoll> logger, ITelegramBotClient client)
         {
             _logger = logger;
             _client = client;
-            _stepRequestStorage = stepRequestStorage;
         }
 
         public async Task ReceiveAsync(RequestDelegate rootHandler, CancellationToken cancellationToken = default)
@@ -59,26 +54,7 @@ namespace ScheduleBot.Telegram.LongPolling
                     {
                         _logger?.LogInformation($"Update received with type: {update.Type}");
 
-                        if (update.Message is Message message)
-                        {
-                            _stepRequestStorage.RemoveChatRequests(message.Chat.Id);
-                        }
-
-                        if (update.GetChatId() is long chatId && update.GetRequestMessageId() is int requestMessageId && _stepRequestStorage.GetRequestInfo(chatId, requestMessageId) is StepRequestInfo requestInfo)
-                        {
-                            _stepRequestStorage.RemoveChatRequests(chatId);
-
-                            await requestInfo.Callback
-                            (
-                                request: requestInfo.Message,
-                                response: update,
-                                payload: requestInfo.Payload
-                            );
-                        }
-                        else
-                        {
-                            await rootHandler(update);
-                        }
+                        await rootHandler(update);
 
                         messageOffset = update.Id + 1;
                     }

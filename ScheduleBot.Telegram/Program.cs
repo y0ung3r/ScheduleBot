@@ -11,17 +11,14 @@ using ScheduleBot.Parser.Extensions;
 using ScheduleBot.Telegram.Configurations;
 using ScheduleBot.Telegram.Extensions;
 using ScheduleBot.Telegram.Handlers;
-using ScheduleBot.Telegram.Handlers.Commands;
 using System.Threading.Tasks;
 
 namespace ScheduleBot.Telegram
 {
     public static class Program
     {
-        public static async Task Main(string[] args)
+        public static void ConfigureServices(IServiceCollection services)
         {
-            var services = new ServiceCollection();
-            
             services.AddApplication()
                     .AddLogging(builder =>
                     {
@@ -37,15 +34,14 @@ namespace ScheduleBot.Telegram
                     .AddDomainServices()
                     .AddScheduleParser<ScheduleParser>()
                     .AddTelegramBotClient(BotConfiguration.ApiToken)
-                    .AddTelegramBotExtensions()
                     .AddBotFramework()
-                    .AddHandler<TelegramExceptionHandler>()
-                    .AddHandler<StartCommand>()
-                    .AddHandler<SettingsCommand>()
-                    .AddHandler<BindCommand>()
-                    .AddHandler<ScheduleCommand>()
-                    .AddHandler<TomorrowCommand>()
-                    .AddHandler<MissingUpdateHandler>();
+                    .AddHandler<MissingRequestHandler>();
+        }
+
+        public static async Task Main(string[] args)
+        {
+            var services = new ServiceCollection();
+            ConfigureServices(services);
 
             var serviceProvider = services.BuildServiceProvider();
             var application = serviceProvider.GetRequiredService<Application>();

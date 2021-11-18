@@ -1,9 +1,10 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using BotFramework.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using ScheduleBot.Telegram.Interfaces;
 using ScheduleBot.Telegram.LongPolling;
 using ScheduleBot.Telegram.LongPolling.Interfaces;
-using ScheduleBot.Telegram.StepHandler;
-using ScheduleBot.Telegram.StepHandler.Interfaces;
+using System;
 using Telegram.Bot;
 
 namespace ScheduleBot.Telegram.Extensions
@@ -24,13 +25,9 @@ namespace ScheduleBot.Telegram.Extensions
                 serviceProvider => new TelegramBotClient(token)
             );
 
-            return services;
-        }
+            services.TryAddSingleton<ILongPoll, LongPoll>();
 
-        public static IServiceCollection AddTelegramBotExtensions(this IServiceCollection services)
-        {
-            services.TryAddSingleton<IStepRequestStorage, StepRequestStorage>();
-            services.TryAddSingleton<ILongPollingService, LongPollingService>();
+            services.TryAddScoped<ITelegramBot, ScheduleBot>();
 
             return services;
         }
