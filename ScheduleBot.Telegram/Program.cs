@@ -12,6 +12,9 @@ using ScheduleBot.Telegram.Configurations;
 using ScheduleBot.Telegram.Extensions;
 using ScheduleBot.Telegram.Handlers;
 using System.Threading.Tasks;
+using ScheduleBot.Telegram.Handlers.Commands.Bind;
+using ScheduleBot.Telegram.Handlers.Commands.Bind.StepHandlers;
+using ScheduleBot.Telegram.Handlers.Commands.Start;
 
 namespace ScheduleBot.Telegram
 {
@@ -35,7 +38,12 @@ namespace ScheduleBot.Telegram
                     .AddScheduleParser<ScheduleParser>()
                     .AddTelegramBotClient(BotConfiguration.ApiToken)
                     .AddBotFramework()
-                    .AddHandler<MissingRequestHandler>();
+                    .AddHandler<MissingUpdateHandler>()
+                    .AddHandler<StartCommand>()
+                    .AddHandler<BindCommand>()
+                    .AddHandler<IncomingFacultyHandler>()
+                    .AddHandler<IncomingGroupHandler>()
+                    .AddHandler<TelegramExceptionHandler>();
         }
 
         public static async Task Main(string[] args)

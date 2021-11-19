@@ -4,6 +4,10 @@ using ScheduleBot.Telegram.Handlers;
 using ScheduleBot.Telegram.Interfaces;
 using System;
 using System.Threading.Tasks;
+using BotFramework.Extensions;
+using ScheduleBot.Telegram.Handlers.Commands.Bind;
+using ScheduleBot.Telegram.Handlers.Commands.Bind.StepHandlers;
+using ScheduleBot.Telegram.Handlers.Commands.Start;
 
 namespace ScheduleBot.Telegram
 {
@@ -17,7 +21,14 @@ namespace ScheduleBot.Telegram
             _botFactory = botFactory;
             _branchBuilder = branchBuilder;
 
-            _branchBuilder.UseHandler<MissingRequestHandler>();
+            _branchBuilder.UseHandler<TelegramExceptionHandler>()
+                          .UseCommand<StartCommand>()
+                          .UseStepsFor<BindCommand>(stepsBuilder =>
+                          { 
+                              stepsBuilder.UseStepHandler<IncomingFacultyHandler>()
+                                          .UseStepHandler<IncomingGroupHandler>();
+                          })
+                          .UseHandler<MissingUpdateHandler>();
         }
 
         public async Task RunAsync()

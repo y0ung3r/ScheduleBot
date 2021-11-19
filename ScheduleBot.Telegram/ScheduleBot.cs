@@ -44,12 +44,14 @@ namespace ScheduleBot.Telegram
 
         public void Stop()
         {
-            if (!_cancellationTokenSource.IsCancellationRequested)
+            if (_cancellationTokenSource.IsCancellationRequested)
             {
-                _logger?.LogInformation("Bot stopped");
-
-                _cancellationTokenSource.Cancel();
+                return;
             }
+            
+            _cancellationTokenSource.Cancel();
+            
+            _logger?.LogInformation("Bot stopped");
         }
     }
 }
