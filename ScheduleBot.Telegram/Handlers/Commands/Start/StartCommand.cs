@@ -50,11 +50,7 @@ namespace ScheduleBot.Telegram.Handlers.Commands.Start
 
             var chatId = message.Chat.Id;
 
-            await Client.SendChatActionAsync
-            (
-                chatId, 
-                chatAction: ChatAction.Typing
-            );
+            await Client.SendChatActionAsync(chatId, ChatAction.Typing);
 
             await Client.SendTextMessageAsync
             (

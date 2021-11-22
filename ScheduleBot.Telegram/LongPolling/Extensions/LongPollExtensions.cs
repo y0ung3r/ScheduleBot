@@ -16,10 +16,14 @@ namespace ScheduleBot.Telegram.LongPolling.Extensions
                 throw new ArgumentNullException(nameof(rootHandler));
             }
 
-            Task.Run(async () =>
-            {
-                await longPoll.ReceiveAsync(rootHandler, cancellationToken);
-            });
+            Task.Run
+            (
+                async () =>
+                {
+                    await longPoll.ReceiveAsync(rootHandler, cancellationToken);
+                }, 
+                cancellationToken
+            );
         }
     }
 }

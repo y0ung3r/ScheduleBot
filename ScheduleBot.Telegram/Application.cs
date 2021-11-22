@@ -5,9 +5,12 @@ using ScheduleBot.Telegram.Interfaces;
 using System;
 using System.Threading.Tasks;
 using BotFramework.Extensions;
+using ScheduleBot.Telegram.Extensions;
 using ScheduleBot.Telegram.Handlers.Commands.Bind;
 using ScheduleBot.Telegram.Handlers.Commands.Bind.StepHandlers;
+using ScheduleBot.Telegram.Handlers.Commands.Settings;
 using ScheduleBot.Telegram.Handlers.Commands.Start;
+using Telegram.Bot.Types;
 
 namespace ScheduleBot.Telegram
 {
@@ -23,11 +26,16 @@ namespace ScheduleBot.Telegram
 
             _branchBuilder.UseHandler<TelegramExceptionHandler>()
                           .UseCommand<StartCommand>()
-                          .UseStepsFor<BindCommand>(stepsBuilder =>
-                          { 
-                              stepsBuilder.UseStepHandler<IncomingFacultyHandler>()
-                                          .UseStepHandler<IncomingGroupHandler>();
-                          })
+                          .UseStepsFor<BindCommand>
+                          (
+                              stepsBuilder =>
+                              { 
+                                  stepsBuilder.UseStepHandler<IncomingFacultyHandler>()
+                                              .UseStepHandler<IncomingGroupHandler>();
+                              },
+                              request => (request as Update).GetChatId()
+                          )
+                          .UseCommand<SettingsCommand>()
                           .UseHandler<MissingUpdateHandler>();
         }
 
@@ -39,7 +47,7 @@ namespace ScheduleBot.Telegram
 
             await bot.RunAsync();
 
-            Console.Title = botInfo.Username;
+            Console.Title = botInfo.GetBotName();
             Console.ReadKey();
 
             bot.Stop();

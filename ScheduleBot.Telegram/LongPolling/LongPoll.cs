@@ -4,6 +4,7 @@ using ScheduleBot.Telegram.LongPolling.Interfaces;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using ScheduleBot.Telegram.Extensions;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 

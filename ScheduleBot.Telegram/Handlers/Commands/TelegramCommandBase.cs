@@ -1,9 +1,9 @@
 ﻿using BotFramework;
-using BotFramework.Extensions;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using BotFramework.Handlers.Common;
+using BotFramework.Handlers.Extensions;
 using ScheduleBot.Telegram.Extensions;
 using Telegram.Bot;
 using Telegram.Bot.Types;

@@ -14,6 +14,7 @@ using ScheduleBot.Telegram.Handlers;
 using System.Threading.Tasks;
 using ScheduleBot.Telegram.Handlers.Commands.Bind;
 using ScheduleBot.Telegram.Handlers.Commands.Bind.StepHandlers;
+using ScheduleBot.Telegram.Handlers.Commands.Settings;
 using ScheduleBot.Telegram.Handlers.Commands.Start;
 
 namespace ScheduleBot.Telegram
@@ -43,7 +44,8 @@ namespace ScheduleBot.Telegram
                     .AddHandler<BindCommand>()
                     .AddHandler<IncomingFacultyHandler>()
                     .AddHandler<IncomingGroupHandler>()
-                    .AddHandler<TelegramExceptionHandler>();
+                    .AddHandler<TelegramExceptionHandler>()
+                    .AddHandler<SettingsCommand>();
         }
 
         public static async Task Main(string[] args)

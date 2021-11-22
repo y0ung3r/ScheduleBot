@@ -25,6 +25,7 @@ namespace ScheduleBot.Telegram.Handlers.Commands.Bind
         
         public override async Task HandleAsync(Message message, string[] arguments, RequestDelegate nextHandler)
         {
+            var messageId = message.MessageId;
             var chatId = message.Chat.Id;
 
             var faculties = await _scheduleParser.ParseFacultiesAsync();
@@ -34,11 +35,7 @@ namespace ScheduleBot.Telegram.Handlers.Commands.Bind
                 columnsCount: 2
             );
 
-            await Client.SendChatActionAsync
-            (
-                chatId,
-                chatAction: ChatAction.Typing
-            );
+            await Client.SendChatActionAsync(chatId, ChatAction.Typing);
 
             await Client.SendTextMessageAsync
             (

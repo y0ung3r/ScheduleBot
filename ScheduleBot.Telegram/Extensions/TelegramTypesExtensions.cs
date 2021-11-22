@@ -9,6 +9,26 @@ namespace ScheduleBot.Telegram.Extensions
     {
         public static string GetBotName(this User user) => $"{user.FirstName} {user.LastName}".Trim();
 
+        public static object GetRequest(this Update update)
+        {
+            return update.Type switch
+            {
+                UpdateType.Message => update.Message,
+                UpdateType.InlineQuery => update.InlineQuery,
+                UpdateType.ChosenInlineResult => update.ChosenInlineResult,
+                UpdateType.PreCheckoutQuery => update.PreCheckoutQuery,
+                UpdateType.Poll => update.Poll,
+                UpdateType.PollAnswer => update.PollAnswer,
+                UpdateType.CallbackQuery => update.CallbackQuery,
+                UpdateType.EditedMessage => update.EditedMessage,
+                UpdateType.ChannelPost => update.ChannelPost,
+                UpdateType.EditedChannelPost => update.EditedChannelPost,
+                UpdateType.MyChatMember => update.MyChatMember,
+                UpdateType.ChatMember => update.ChatMember,
+                _ => default(object)
+            };
+        }
+        
         public static long? GetChatId(this Update update)
         {
             return update.Type switch
@@ -39,11 +59,11 @@ namespace ScheduleBot.Telegram.Extensions
             };
         }
 
-        public static int? GetRequestMessageId(this Update update)
+        public static int? GetMessageId(this Update update)
         {
             return update.Type switch
             {
-                UpdateType.Message => update.Message.ReplyToMessage?.MessageId,
+                UpdateType.Message => update.Message.MessageId,
                 UpdateType.CallbackQuery => update.CallbackQuery.Message.MessageId,
                 _ => default(int?)
             };

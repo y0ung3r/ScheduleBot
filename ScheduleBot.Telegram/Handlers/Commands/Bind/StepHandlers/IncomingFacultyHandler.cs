@@ -23,9 +23,9 @@ namespace ScheduleBot.Telegram.Handlers.Commands.Bind.StepHandlers
             _scheduleParser = scheduleParser;
         }
         
-        public override async Task HandleAsync(Update previousRequest, Update currentRequest)
+        public override async Task HandleAsync(Update request, Update response)
         {
-            var callbackQuery = currentRequest.CallbackQuery;
+            var callbackQuery = response.CallbackQuery;
             var message = callbackQuery.Message;
             var chatId = message.Chat.Id;
             var messageId = message.MessageId;
@@ -37,24 +37,14 @@ namespace ScheduleBot.Telegram.Handlers.Commands.Bind.StepHandlers
             if (faculty is not null)
             {
                 var groups = await _scheduleParser.ParseGroupsAsync(faculty.Id);
-
                 var inlineKeyboard = groups.ToInlineKeyboard
                 (
                     group => group.Title,
                     columnsCount: 3
                 );
 
-                await _client.SendChatActionAsync
-                (
-                    chatId,
-                    chatAction: ChatAction.Typing
-                );
-
-                await _client.DeleteMessageAsync
-                (
-                    chatId,
-                    messageId: messageId
-                );
+                await _client.SendChatActionAsync(chatId, ChatAction.Typing);
+                await _client.DeleteMessageAsync(chatId, messageId);
 
                 await _client.SendTextMessageAsync
                 (
@@ -67,9 +57,9 @@ namespace ScheduleBot.Telegram.Handlers.Commands.Bind.StepHandlers
             await _client.AnswerCallbackQueryAsync(callbackQuery.Id);
         }
 
-        public override bool CanHandle(Update previousRequest, Update currentRequest)
+        public override bool CanHandle(Update request, Update response)
         {
-            return currentRequest.CallbackQuery is not null;
+            return request is not null && response is not null;
         }
     }
 }

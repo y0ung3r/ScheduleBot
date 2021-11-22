@@ -26,15 +26,15 @@ namespace ScheduleBot.Telegram.Handlers.Commands.Bind.StepHandlers
             _chatParametersService = chatParametersService;
         }
         
-        public override async Task HandleAsync(Update previousRequest, Update currentRequest)
+        public override async Task HandleAsync(Update request, Update response)
         {
-            var callbackQuery = currentRequest.CallbackQuery;
-            var message = callbackQuery.Message;
+            var responseCallbackQuery = response.CallbackQuery;
+            var message = responseCallbackQuery.Message;
             var chatId = message.Chat.Id;
             var messageId = message.MessageId;
             
             var faculties = await _scheduleParser.ParseFacultiesAsync();
-            var facultyAbbreviation = previousRequest.CallbackQuery.Data;
+            var facultyAbbreviation = request.CallbackQuery.Data;
             var faculty = faculties.FirstOrDefault
             (
                 faculty => faculty.TitleAbbreviation.Equals(facultyAbbreviation)
@@ -43,7 +43,7 @@ namespace ScheduleBot.Telegram.Handlers.Commands.Bind.StepHandlers
             if (faculty is not null)
             {
                 var groups = await _scheduleParser.ParseGroupsAsync(faculty.Id);
-                var groupTitle = callbackQuery.Data;
+                var groupTitle = responseCallbackQuery.Data;
                 var group = groups.FirstOrDefault
                 (
                     group => group.Title.Equals(groupTitle)
@@ -51,11 +51,7 @@ namespace ScheduleBot.Telegram.Handlers.Commands.Bind.StepHandlers
 
                 if (group is not null)
                 {
-                    await _client.SendChatActionAsync
-                    (
-                        chatId,
-                        chatAction: ChatAction.Typing
-                    );
+                    await _client.SendChatActionAsync(chatId, ChatAction.Typing);
 
                     await _chatParametersService.SaveChatParametersAsync
                     (
@@ -65,11 +61,7 @@ namespace ScheduleBot.Telegram.Handlers.Commands.Bind.StepHandlers
                         group.TypeId
                     );
 
-                    await _client.DeleteMessageAsync
-                    (
-                        chatId,
-                        messageId: messageId
-                    );
+                    await _client.DeleteMessageAsync(chatId, messageId);
 
                     await _client.SendTextMessageAsync
                     (
@@ -79,12 +71,12 @@ namespace ScheduleBot.Telegram.Handlers.Commands.Bind.StepHandlers
                 }
             }
             
-            await _client.AnswerCallbackQueryAsync(callbackQuery.Id);
+            await _client.AnswerCallbackQueryAsync(responseCallbackQuery.Id);
         }
         
-        public override bool CanHandle(Update previousRequest, Update currentRequest)
+        public override bool CanHandle(Update request, Update response)
         {
-            return previousRequest.CallbackQuery is not null && currentRequest.CallbackQuery is not null;
+            return request is not null && response is not null;
         }
     }
 }
