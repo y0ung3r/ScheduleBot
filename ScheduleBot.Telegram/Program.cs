@@ -1,62 +1,49 @@
-﻿using BotFramework.Extensions;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using ScheduleBot.Data;
-using ScheduleBot.Data.Extensions;
-using ScheduleBot.Data.UnitOfWorks;
-using ScheduleBot.Domain.Extensions;
-using ScheduleBot.Parser;
-using ScheduleBot.Parser.Extensions;
-using ScheduleBot.Telegram.Configurations;
-using ScheduleBot.Telegram.Extensions;
+using BotFramework.Extensions;
+using ScheduleBot.Telegram;
 using ScheduleBot.Telegram.Handlers;
-using System.Threading.Tasks;
-using ScheduleBot.Telegram.Handlers.Commands.Bind;
-using ScheduleBot.Telegram.Handlers.Commands.Bind.StepHandlers;
-using ScheduleBot.Telegram.Handlers.Commands.Settings;
-using ScheduleBot.Telegram.Handlers.Commands.Start;
+using Telegram.Bot;
 
-namespace ScheduleBot.Telegram
+var builder = WebApplication.CreateBuilder(args);
+var services = builder.Services;
+
+var botSection = builder.Configuration.GetSection("Bot");
+var botOptions = botSection.Get<BotOptions>();
+services.Configure<BotOptions>(botSection);
+
+services.AddEndpointsApiExplorer()
+		.AddSwaggerGen();
+
+services.AddHostedService<WebhookConfiguration>();
+
+services.AddHttpClient("tgwebhook")
+		.AddTypedClient<ITelegramBotClient>
+		(
+			httpClient => new TelegramBotClient
+			(
+				botOptions.Token, 
+				httpClient
+			)
+		);
+              
+services.AddBotFramework<ITelegramBotClient>()
+		.AddHandler<EchoHandler>();
+            
+services.AddControllers()
+		.AddNewtonsoftJson();
+
+var application = builder.Build();
+var environment = application.Environment;
+
+if (environment.IsDevelopment())
 {
-    public static class Program
-    {
-        public static void ConfigureServices(IServiceCollection services)
-        {
-            services.AddApplication()
-                    .AddLogging(builder =>
-                    {
-                        builder.ClearProviders()
-                               .AddConsole();
-                    })
-                    .AddDbContext<BotContext>(options =>
-                    {
-                        options.UseSqlite(BotConfiguration.ConnectionString);
-                    })
-                    .AddUnitOfWork<UnitOfWork>()
-                    .AddRepositories()
-                    .AddDomainServices()
-                    .AddScheduleParser<ScheduleParser>()
-                    .AddTelegramBotClient(BotConfiguration.ApiToken)
-                    .AddBotFramework()
-                    .AddHandler<MissingUpdateHandler>()
-                    .AddHandler<StartCommand>()
-                    .AddHandler<BindCommand>()
-                    .AddHandler<IncomingFacultyHandler>()
-                    .AddHandler<IncomingGroupHandler>()
-                    .AddHandler<TelegramExceptionHandler>()
-                    .AddHandler<SettingsCommand>();
-        }
-
-        public static async Task Main(string[] args)
-        {
-            var services = new ServiceCollection();
-            ConfigureServices(services);
-
-            var serviceProvider = services.BuildServiceProvider();
-            var application = serviceProvider.GetRequiredService<Application>();
-
-            await application.RunAsync();
-        }
-    }
+	application.UseSwagger()
+			   .UseSwaggerUI();
 }
+
+application.UseHttpsRedirection()
+		   .UseAuthorization()
+		   .UseRouting();
+
+application.MapControllers();
+
+application.Run();
