@@ -1,6 +1,7 @@
 using BotFramework.Extensions;
+using ScheduleBot.Parser.Extensions;
 using ScheduleBot.Telegram;
-using ScheduleBot.Telegram.Handlers;
+using ScheduleBot.Telegram.Commands;
 using Telegram.Bot;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -24,9 +25,12 @@ services.AddHttpClient("tgwebhook")
 				httpClient
 			)
 		);
-              
-services.AddBotFramework<ITelegramBotClient>()
-		.AddHandler<EchoHandler>();
+     
+services.AddScheduleParser()
+	    .AddBotFramework<ITelegramBotClient>()
+		.AddHandler<StartCommand>()
+		.AddHandler<BindCommand>()
+	    .AddHandler<SettingsCommand>();
             
 services.AddControllers()
 		.AddNewtonsoftJson();

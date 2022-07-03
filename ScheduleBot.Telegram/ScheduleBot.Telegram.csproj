@@ -17,4 +17,8 @@
       <Folder Include="Controllers" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\ScheduleBot.Parser\ScheduleBot.Parser.csproj" />
+    </ItemGroup>
+
 </Project>
